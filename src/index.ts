@@ -4,6 +4,7 @@ dotenv.config(); // This line loads the .env file
 import express, { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 
+import cors from 'cors'; // Import cors for CORS configuration
 // Import configuration
 import { config, validateEnvironment, logConfiguration } from './config/environment';
 
@@ -35,6 +36,24 @@ validateEnvironment();
 // Middleware to parse JSON bodies
 app.use(express.json());
 
+
+// Libera CORS para localhost e produção
+const allowedOrigins = [
+    'http://localhost:3000', // frontend local
+    'https://seusite.com'   // troque pelo domínio real de produção
+];
+app.use(cors({
+    origin: (origin, callback) => {
+        // Permite requests sem origin (ex: ferramentas internas, curl)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        } else {
+            return callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true
+}));
 // Global middlewares
 app.use(sanitizeStrings);
 
@@ -77,9 +96,18 @@ async function main() {
     // Log configuration
     logConfiguration();
     
-    app.listen(config.server.port, () => {
-        console.log(`🌟 Server is running on http://localhost:${config.server.port}`);
-        console.log(`📋 API Documentation: http://localhost:${config.server.port}${config.api.prefix}`);
+    const port = process.env.PORT || config.server.port;
+    app.listen(port, () => {
+        let publicUrl = '';
+        if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+            publicUrl = `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
+        } else if (process.env.RAILWAY_URL) {
+            publicUrl = process.env.RAILWAY_URL;
+        } else {
+            publicUrl = `http://localhost:${port}`;
+        }
+        console.log(`🌟 Server is running on ${publicUrl}`);
+        console.log(`📋 API Documentation: ${publicUrl}${config.api.prefix}`);
     });
 }
 
