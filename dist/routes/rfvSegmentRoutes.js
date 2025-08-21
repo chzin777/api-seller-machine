@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const rfvSegmentController_1 = require("../controllers/rfvSegmentController");
+const router = (0, express_1.Router)();
+router.post('/', rfvSegmentController_1.createSegment);
+router.get('/', rfvSegmentController_1.getSegments);
+router.put('/:id', rfvSegmentController_1.updateSegment);
+router.delete('/:id', rfvSegmentController_1.deleteSegment);
+exports.default = router;
