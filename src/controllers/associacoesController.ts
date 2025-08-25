@@ -154,22 +154,11 @@ export const getAssociacoes = async (req: Request, res: Response) => {
     const skip = (Number(page) - 1) * Number(pageSize);
     const take = Number(pageSize);
 
-    // Adaptação: se tipo for informado, filtra por tipo de produto A ou B
-    if (tipo) {
-      where.OR = [
-        { produtoA: { tipo: tipo } },
-        { produtoB: { tipo: tipo } },
-      ];
-    }
-
+    // Consulta paginada com join para pegar todos os campos
     const [total, associacoes] = await Promise.all([
-  prisma.associacaoProduto.count({ where }),
-  prisma.associacaoProduto.findMany({
+      prisma.associacaoProduto.count({ where }),
+      prisma.associacaoProduto.findMany({
         where,
-        include: {
-          produtoA: { select: { descricao: true, tipo: true } },
-          produtoB: { select: { descricao: true, tipo: true } },
-        },
         skip,
         take,
         orderBy: { suporte: 'desc' },
@@ -179,13 +168,15 @@ export const getAssociacoes = async (req: Request, res: Response) => {
     const result = associacoes.map((a: any) => ({
       produto_a_id: a.produto_a_id,
       produto_b_id: a.produto_b_id,
-      a_nome: a.produtoA?.descricao,
-      b_nome: a.produtoB?.descricao,
-      a_tipo: a.produtoA?.tipo,
-      b_tipo: a.produtoB?.tipo,
+      a_nome: a.a_nome,
+      b_nome: a.b_nome,
+      a_tipo: a.a_tipo,
+      b_tipo: a.b_tipo,
       suporte: a.suporte,
       confianca: a.confianca,
       lift: a.lift,
+      vendas_produto_a: a.vendas_produto_a,
+      vendas_produto_b: a.vendas_produto_b,
       atualizado_em: a.atualizado_em,
     }));
 
