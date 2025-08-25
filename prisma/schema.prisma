@@ -1,14 +1,20 @@
 model AssociacaoProduto {
-  id             Int      @id @default(autoincrement())
-  produto_a_id   Int
-  produto_b_id   Int
-  suporte        Int
-  confianca      Float
-  lift           Float
-  atualizado_em  DateTime @updatedAt
+  id                Int      @id @default(autoincrement())
+  produto_a_id      Int
+  produto_b_id      Int
+  suporte           Int
+  confianca         Float
+  lift              Float
+  a_nome            String   @db.VarChar(255)
+  b_nome            String   @db.VarChar(255)
+  a_tipo            String   @db.VarChar(50)
+  b_tipo            String   @db.VarChar(50)
+  vendas_produto_a  Int
+  vendas_produto_b  Int
+  atualizado_em     DateTime @updatedAt
 
-  produtoA       Produto  @relation("ProdutoA", fields: [produto_a_id], references: [id])
-  produtoB       Produto  @relation("ProdutoB", fields: [produto_b_id], references: [id])
+  produtoA          Produto  @relation("ProdutoA", fields: [produto_a_id], references: [id])
+  produtoB          Produto  @relation("ProdutoB", fields: [produto_b_id], references: [id])
 
   @@map("Associacoes_Produtos")
   @@index([produto_a_id])
