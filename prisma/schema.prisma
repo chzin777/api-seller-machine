@@ -1,3 +1,19 @@
+model AssociacaoProduto {
+  id             Int      @id @default(autoincrement())
+  produto_a_id   Int
+  produto_b_id   Int
+  suporte        Int
+  confianca      Float
+  lift           Float
+  atualizado_em  DateTime @updatedAt
+
+  produtoA       Produto  @relation("ProdutoA", fields: [produto_a_id], references: [id])
+  produtoB       Produto  @relation("ProdutoB", fields: [produto_b_id], references: [id])
+
+  @@map("Associacoes_Produtos")
+  @@index([produto_a_id])
+  @@index([produto_b_id])
+}
 generator client {
   provider = "prisma-client-js"
 }
@@ -91,6 +107,9 @@ model Produto {
   preco             Decimal          @map("Valor_Unitario_Referencia") @db.Decimal(15, 2)
   maquinasEstoque   MaquinaEstoque[]
   notasFiscaisItens NotaFiscalItem[]
+
+  associacoesA      AssociacaoProduto[] @relation("ProdutoA")
+  associacoesB      AssociacaoProduto[] @relation("ProdutoB")
 
   @@map("Produtos")
 }

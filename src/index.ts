@@ -1,3 +1,4 @@
+import associacoesRoutes from './routes/associacoesRoutes';
 import * as dotenv from 'dotenv';
 dotenv.config(); // This line loads the .env file
 
@@ -70,6 +71,9 @@ app.use('/api/filiais', filialRoutes);
 app.use('/api/clientes', clienteRoutes);
 app.use('/api/produtos', produtoRoutes);
 app.use('/api/vendedores', vendedorRoutes);
+
+// API Routes - Associações de Produtos
+app.use('/api/associacoes', associacoesRoutes);
 
 // API Routes - Transactions
 app.use('/api/notas-fiscais', notaFiscalRoutes);
