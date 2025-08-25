@@ -4,36 +4,98 @@ import { Prisma } from '@prisma/client';
 
 // --- Helper functions for Scoring ---
 const getRecencyScore = (days: number, rules: any) => {
+    if (!rules || !rules.bins || !Array.isArray(rules.bins)) {
+        console.log('Invalid recency rules:', rules);
+        return 1;
+    }
     const sortedBins = rules.bins.sort((a: any, b: any) => (a.max_dias ?? Infinity) - (b.max_dias ?? Infinity));
     return sortedBins.find((bin: any) => bin.max_dias === undefined || days <= bin.max_dias)?.score ?? 1;
 };
+
 const getFrequencyScore = (purchases: number, rules: any) => {
+    if (!rules || !rules.bins || !Array.isArray(rules.bins)) {
+        console.log('Invalid frequency rules:', rules);
+        return 1;
+    }
     const sortedBins = rules.bins.sort((a: any, b: any) => (b.min_compras ?? -Infinity) - (a.min_compras ?? -Infinity));
     return sortedBins.find((bin: any) => bin.min_compras === undefined || purchases >= bin.min_compras)?.score ?? 1;
 };
+
 const getValueScore = (value: number, rules: any) => {
+    if (!rules || !rules.bins || !Array.isArray(rules.bins)) {
+        console.log('Invalid value rules:', rules);
+        return 1;
+    }
     const sortedBins = rules.bins.sort((a: any, b: any) => (b.min_valor ?? -Infinity) - (a.min_valor ?? -Infinity));
     return sortedBins.find((bin: any) => bin.min_valor === undefined || value >= bin.min_valor)?.score ?? 1;
 };
 
 // --- Helper function for Segmentation ---
 const determineSegmentClass = (rScore: number, fScore: number, vScore: number, segments: any[]): string => {
-    // Sort segments by priority to ensure the most important rules are checked first
+    // Check if segments is valid and sort by priority
+    if (!segments || segments.length === 0) {
+        return 'Não Segmentado';
+    }
     const sortedSegments = segments.sort((a, b) => b.priority - a.priority);
 
     for (const segment of sortedSegments) {
         const rules = segment.rules as Prisma.JsonObject;
         let isMatch = true;
-        if (rules.R && !eval(`${rScore} ${rules.R}`)) isMatch = false;
-        if (rules.F && !eval(`${fScore} ${rules.F}`)) isMatch = false;
-        if (rules.V && !eval(`${vScore} ${rules.V}`)) isMatch = false;
+        
+        try {
+            if (rules.R) {
+                const rCondition = rules.R as string;
+                const rResult = evaluateCondition(rScore, rCondition);
+                if (!rResult) isMatch = false;
+            }
+            if (rules.F) {
+                const fCondition = rules.F as string;
+                const fResult = evaluateCondition(fScore, fCondition);
+                if (!fResult) isMatch = false;
+            }
+            if (rules.V) {
+                const vCondition = rules.V as string;
+                const vResult = evaluateCondition(vScore, vCondition);
+                if (!vResult) isMatch = false;
+            }
 
-        if (isMatch) {
-            return segment.name; // Return the first matching segment name
+            if (isMatch) {
+                return segment.name; // Return the first matching segment name
+            }
+        } catch (error) {
+            console.error('Error evaluating segment rules:', segment.name, rules, error);
+            continue;
         }
     }
 
     return 'Não Segmentado'; // Default if no segment rules match
+};
+
+// Helper function to safely evaluate conditions
+const evaluateCondition = (score: number, condition: string): boolean => {
+    try {
+        // Parse conditions like ">= 5", "<= 2", "= 3", etc.
+        if (condition.includes('>=')) {
+            const threshold = parseFloat(condition.replace('>=', '').trim());
+            return score >= threshold;
+        } else if (condition.includes('<=')) {
+            const threshold = parseFloat(condition.replace('<=', '').trim());
+            return score <= threshold;
+        } else if (condition.includes('>')) {
+            const threshold = parseFloat(condition.replace('>', '').trim());
+            return score > threshold;
+        } else if (condition.includes('<')) {
+            const threshold = parseFloat(condition.replace('<', '').trim());
+            return score < threshold;
+        } else if (condition.includes('=')) {
+            const threshold = parseFloat(condition.replace('=', '').trim());
+            return score === threshold;
+        }
+        return false;
+    } catch (error) {
+        console.error('Error parsing condition:', condition, error);
+        return false;
+    }
 };
 
 // CREATE a new RFV parameter set
@@ -78,13 +140,20 @@ export const calculateRfvScores = async (req: Request, res: Response) => {
             where: { parameterSetId: activeRuleSet.id }
         });
 
+        console.log('Active RFV Rule Set:', activeRuleSet.id, activeRuleSet.name);
+        console.log('Found segments:', segments ? segments.length : 0);
+
         const windowStartDate = new Date();
         windowStartDate.setDate(asOfDate.getDate() - activeRuleSet.windowDays);
+
+        console.log('Analysis window:', windowStartDate, 'to', asOfDate);
 
         const salesData = await prisma.notasFiscalCabecalho.findMany({
             where: { dataEmissao: { gte: windowStartDate }, clienteId: { not: null } },
             select: { clienteId: true, dataEmissao: true, valorTotal: true }
         });
+
+        console.log('Found sales data:', salesData ? salesData.length : 0, 'records');
 
         const customerMetrics: { [key: number]: { recency: number, frequency: number, value: number, lastPurchase: Date } } = {};
         for (const sale of salesData) {
@@ -125,6 +194,119 @@ export const calculateRfvScores = async (req: Request, res: Response) => {
             results: scoredCustomers
         });
 
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// ===== RFV SEGMENTS CRUD =====
+
+// CREATE a new RFV segment
+export const createRfvSegment = async (req: Request, res: Response) => {
+    try {
+        const { parameterSetId, name, rules, priority } = req.body;
+        
+        if (!parameterSetId || !name || !rules) {
+            return res.status(400).json({ 
+                error: 'parameterSetId, name and rules are required' 
+            });
+        }
+
+        const newSegment = await prisma.rfvSegment.create({
+            data: {
+                parameterSetId: parseInt(parameterSetId),
+                name,
+                rules,
+                priority: priority || 0
+            }
+        });
+
+        res.status(201).json(newSegment);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// GET all RFV segments (with optional parameterSetId filter)
+export const getRfvSegments = async (req: Request, res: Response) => {
+    try {
+        const { parameterSetId } = req.query;
+        
+        const where = parameterSetId 
+            ? { parameterSetId: parseInt(parameterSetId as string) }
+            : {};
+
+        const segments = await prisma.rfvSegment.findMany({
+            where,
+            include: {
+                parameterSet: {
+                    select: { id: true, name: true }
+                }
+            },
+            orderBy: [
+                { parameterSetId: 'asc' },
+                { priority: 'desc' }
+            ]
+        });
+
+        res.status(200).json(segments);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// UPDATE an RFV segment
+export const updateRfvSegment = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { name, rules, priority } = req.body;
+
+        const segment = await prisma.rfvSegment.findUnique({
+            where: { id: parseInt(id) }
+        });
+
+        if (!segment) {
+            return res.status(404).json({ error: 'Segment not found' });
+        }
+
+        const updatedSegment = await prisma.rfvSegment.update({
+            where: { id: parseInt(id) },
+            data: {
+                ...(name && { name }),
+                ...(rules && { rules }),
+                ...(priority !== undefined && { priority })
+            },
+            include: {
+                parameterSet: {
+                    select: { id: true, name: true }
+                }
+            }
+        });
+
+        res.status(200).json(updatedSegment);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// DELETE an RFV segment
+export const deleteRfvSegment = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        const segment = await prisma.rfvSegment.findUnique({
+            where: { id: parseInt(id) }
+        });
+
+        if (!segment) {
+            return res.status(404).json({ error: 'Segment not found' });
+        }
+
+        await prisma.rfvSegment.delete({
+            where: { id: parseInt(id) }
+        });
+
+        res.status(200).json({ message: 'Segment deleted successfully' });
     } catch (error: any) {
         res.status(500).json({ error: error.message });
     }

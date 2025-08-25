@@ -85,10 +85,9 @@ app.use('/api/indicadores', indicatorRoutes);
 
 // API Routes - RFV strategy
 app.use('/api/rfv', rfvRoutes); // *** NEW ***
+app.use('/api/rfv-segments', rfvSegmentRoutes); // *** NEW ***
 
 app.use('/api/empresas', empresaRoutes); // *** NEW ***
-
-app.use('/api/rfv/segments', rfvSegmentRoutes); // *** NEW ***
 
 
 // Error handling middlewares (must be last)
