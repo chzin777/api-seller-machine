@@ -1,6 +1,6 @@
 import express from 'express';
 import { getAllEstatisticasNotasFiscais, getEstatisticasNotasFiscaisById, createEstatisticasNotasFiscais, updateEstatisticasNotasFiscais, deleteEstatisticasNotasFiscais } from '../controllers/estatisticasNotasFiscaisController';
-import { authMiddleware } from '../middleware/authMiddleware';
+import { authMiddleware } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 

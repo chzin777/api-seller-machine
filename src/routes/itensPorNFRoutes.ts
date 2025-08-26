@@ -1,6 +1,6 @@
 import express from 'express';
 import { getAllItensPorNF, getItensPorNFById, createItensPorNF, updateItensPorNF, deleteItensPorNF } from '../controllers/itensPorNFController';
-import { authMiddleware } from '../middleware/authMiddleware';
+import { authMiddleware } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 

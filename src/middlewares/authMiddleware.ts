@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { prisma } from '../index';
+// Não precisamos mais de jwt ou prisma aqui para a versão desativada
+// import jwt from 'jsonwebtoken';
+// import { prisma } from '../index';
 
 interface TokenPayload {
   id: number;
@@ -8,6 +9,11 @@ interface TokenPayload {
 }
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+  // Apenas chame next() para pular a autenticação.
+  // Todo o código de verificação abaixo foi desativado.
+  return next();
+
+  /* CÓDIGO ORIGINAL COMENTADO:
   try {
     const authHeader = req.headers.authorization;
 
@@ -50,4 +56,5 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
   } catch (error) {
     return res.status(500).json({ error: 'Erro na autenticação' });
   }
+  */
 };

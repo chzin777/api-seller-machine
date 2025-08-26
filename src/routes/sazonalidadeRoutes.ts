@@ -1,11 +1,11 @@
 import express from 'express';
 import { getAllSazonalidade, getSazonalidadeById, createSazonalidade, updateSazonalidade, deleteSazonalidade } from '../controllers/sazonalidadeController';
-import { authMiddleware } from '../middleware/authMiddleware';
+// import { authMiddleware } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 
 // Aplicar middleware de autenticação em todas as rotas
-router.use(authMiddleware);
+// router.use(authMiddleware);
 
 // Rotas para Sazonalidade
 router.get('/', getAllSazonalidade);

@@ -10,8 +10,8 @@ import cors from 'cors'; // Import cors for CORS configuration
 import { config, validateEnvironment, logConfiguration } from './config/environment';
 
 // Import middlewares
-import { errorHandler, notFoundHandler } from './middleware/errorHandler';
-import { sanitizeStrings } from './middleware/validation';
+import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
+import { sanitizeStrings } from './middlewares/validation';
 
 // Import all routes
 import filialRoutes from './routes/filialRoutes';

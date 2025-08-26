@@ -1,5 +1,5 @@
 model AssociacaoProduto {
-  id                Int      @id @default(autoincrement())
+  id                BigInt      @id @default(autoincrement())
   produto_a_id      Int
   produto_b_id      Int
   suporte           Int

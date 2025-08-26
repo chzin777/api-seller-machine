@@ -1,11 +1,11 @@
 import express from 'express';
 import { getAllTicketMedio, getTicketMedioById, createTicketMedio, updateTicketMedio, deleteTicketMedio } from '../controllers/ticketMedioController';
-import { authMiddleware } from '../middleware/authMiddleware';
+// import { authMiddleware } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 
 // Aplicar middleware de autenticação em todas as rotas
-router.use(authMiddleware);
+// router.use(authMiddleware);
 
 // Rotas para Ticket Médio
 router.get('/', getAllTicketMedio);

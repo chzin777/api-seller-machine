@@ -1,11 +1,11 @@
 import express from 'express';
 import { getAllReceitaVendedor, getReceitaVendedorById, createReceitaVendedor, updateReceitaVendedor, deleteReceitaVendedor } from '../controllers/receitaVendedorController';
-import { authMiddleware } from '../middleware/authMiddleware';
+// import { authMiddleware } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 
 // Aplicar middleware de autenticação em todas as rotas
-router.use(authMiddleware);
+// router.use(authMiddleware);
 
 // Rotas para Receita por Vendedor
 router.get('/', getAllReceitaVendedor);
