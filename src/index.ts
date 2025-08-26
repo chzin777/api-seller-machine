@@ -10,8 +10,8 @@ import cors from 'cors'; // Import cors for CORS configuration
 import { config, validateEnvironment, logConfiguration } from './config/environment';
 
 // Import middlewares
-import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
-import { sanitizeStrings } from './middlewares/validation';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler';
+import { sanitizeStrings } from './middleware/validation';
 
 // Import all routes
 import filialRoutes from './routes/filialRoutes';
@@ -26,6 +26,14 @@ import authRoutes from './routes/authRoutes';
 import rfvRoutes from './routes/rfvRoutes'; // *** NEW ***
 import empresaRoutes from './routes/empresaRoutes'; // *** NEW ***
 import rfvSegmentRoutes from './routes/rfvSegmentRoutes'; // *** NEW ***
+
+// Import sales parameter routes
+import ticketMedioRoutes from './routes/ticketMedioRoutes';
+import itensPorNFRoutes from './routes/itensPorNFRoutes';
+import sazonalidadeRoutes from './routes/sazonalidadeRoutes';
+import receitaLocalizacaoRoutes from './routes/receitaLocalizacaoRoutes';
+import receitaVendedorRoutes from './routes/receitaVendedorRoutes';
+import estatisticasNotasFiscaisRoutes from './routes/estatisticasNotasFiscaisRoutes';
 
 
 export const prisma = new PrismaClient();
@@ -88,6 +96,14 @@ app.use('/api/rfv', rfvRoutes); // *** NEW ***
 app.use('/api/rfv-segments', rfvSegmentRoutes); // *** NEW ***
 
 app.use('/api/empresas', empresaRoutes); // *** NEW ***
+
+// API Routes - Sales Parameters
+app.use('/api/ticket-medio', ticketMedioRoutes);
+app.use('/api/itens-por-nf', itensPorNFRoutes);
+app.use('/api/sazonalidade', sazonalidadeRoutes);
+app.use('/api/receita-localizacao', receitaLocalizacaoRoutes);
+app.use('/api/receita-vendedor', receitaVendedorRoutes);
+app.use('/api/estatisticas-notas-fiscais', estatisticasNotasFiscaisRoutes);
 
 
 // Error handling middlewares (must be last)

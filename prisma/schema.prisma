@@ -79,40 +79,53 @@ model Cliente {
 }
 
 model Filial {
-  id               Int                  @id @default(autoincrement()) @map("ID_Filial")
-  empresaId        Int                  @map("ID_Empresa")
-  empresa          Empresa              @relation("EmpresaToFilial", fields: [empresaId], references: [id])
-  nome             String               @map("Nome_Filial") @db.VarChar(255)
-  cnpj             String               @unique(map: "CNPJ_Filial") @map("CNPJ_Filial") @db.VarChar(18)
-  cidade           String?              @map("Cidade") @db.VarChar(100)
-  estado           String?              @map("Estado") @db.VarChar(2)
-  notasFiscais     NotasFiscalCabecalho[]
-  vendedores       Vendedor[]
-  rfvParameterSets RfvParameterSet[]
-  maquinasEstoque  MaquinaEstoque[]
+  id                     Int                      @id @default(autoincrement()) @map("ID_Filial")
+  empresaId              Int                      @map("ID_Empresa")
+  empresa                Empresa                  @relation("EmpresaToFilial", fields: [empresaId], references: [id])
+  nome                   String                   @map("Nome_Filial") @db.VarChar(255)
+  cnpj                   String                   @unique(map: "CNPJ_Filial") @map("CNPJ_Filial") @db.VarChar(18)
+  cidade                 String?                  @map("Cidade") @db.VarChar(100)
+  estado                 String?                  @map("Estado") @db.VarChar(2)
+  notasFiscais           NotasFiscalCabecalho[]
+  vendedores             Vendedor[]
+  rfvParameterSets       RfvParameterSet[]
+  maquinasEstoque        MaquinaEstoque[]
+  receitasPeriodo        ReceitaPeriodo[]
+  receitasTipoProduto    ReceitaTipoProduto[]
+  receitasProdutoModelo  ReceitaProdutoModelo[]
+  crescimentoVendas      CrescimentoVendas[]
+  ticketsMedios          TicketMedio[]
+  itensPorNF             ItensPorNF[]
+  sazonalidades          Sazonalidade[]
+  receitasLocalizacao    ReceitaLocalizacao[]
+  receitasVendedor       ReceitaVendedor[]
+  estatisticasNotasFiscais EstatisticasNotasFiscais[]
 
   @@map("Filiais")
 }
 
 model Vendedor {
-  id           Int                  @id @default(autoincrement()) @map("ID_Vendedor")
-  nome         String               @map("Nome_Vendedor") @db.VarChar(255)
-  cpf          String               @unique(map: "CPF_Vendedor") @map("CPF_Vendedor") @db.VarChar(14)
-  filialId     Int?                 @map("ID_Filial")
-  notasFiscais NotasFiscalCabecalho[]
-  filial       Filial?              @relation(fields: [filialId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "Vendedores_ibfk_1")
+  id              Int                  @id @default(autoincrement()) @map("ID_Vendedor")
+  nome            String               @map("Nome_Vendedor") @db.VarChar(255)
+  cpf             String               @unique(map: "CPF_Vendedor") @map("CPF_Vendedor") @db.VarChar(14)
+  filialId        Int?                 @map("ID_Filial")
+  notasFiscais    NotasFiscalCabecalho[]
+  receitasVendedor ReceitaVendedor[]
+  filial          Filial?              @relation(fields: [filialId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "Vendedores_ibfk_1")
 
   @@index([filialId], map: "ID_Filial")
   @@map("Vendedores")
 }
 
 model Produto {
-  id                Int              @id @default(autoincrement()) @map("ID_Produto")
-  descricao         String           @map("Descricao_Produto") @db.VarChar(255)
-  tipo              String           @map("Tipo_Produto") @db.VarChar(20)
-  preco             Decimal          @map("Valor_Unitario_Referencia") @db.Decimal(15, 2)
+  id                Int                  @id @default(autoincrement()) @map("ID_Produto")
+  descricao         String               @map("Descricao_Produto") @db.VarChar(255)
+  tipo              String               @map("Tipo_Produto") @db.VarChar(20)
+  preco             Decimal              @map("Valor_Unitario_Referencia") @db.Decimal(15, 2)
   maquinasEstoque   MaquinaEstoque[]
   notasFiscaisItens NotaFiscalItem[]
+  receitasTipo      ReceitaTipoProduto[]
+  receitasModelo    ReceitaProdutoModelo[]
 
   associacoesA      AssociacaoProduto[] @relation("ProdutoA")
   associacoesB      AssociacaoProduto[] @relation("ProdutoB")
@@ -212,4 +225,195 @@ model RfvSegment {
   priority        Int             @default(0)
 
   @@map("rfv_segments")
+}
+
+// Modelos para análise de vendas
+model ReceitaPeriodo {
+  id              Int       @id @default(autoincrement())
+  filialId        Int?
+  filial          Filial?   @relation(fields: [filialId], references: [id])
+  data            DateTime  @db.Date
+  tipoPeriodo     String    @map("tipo_periodo") @db.VarChar(10) // 'dia', 'semana', 'mes', 'ano'
+  valorTotal      Decimal   @map("valor_total") @db.Decimal(15, 2)
+  quantidadeNotas Int       @map("quantidade_notas")
+  quantidadeItens Int       @map("quantidade_itens")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([filialId, data])
+  @@index([tipoPeriodo, data])
+  @@map("receitas_periodo")
+}
+
+model ReceitaTipoProduto {
+  id              Int       @id @default(autoincrement())
+  filialId        Int?
+  filial          Filial?   @relation(fields: [filialId], references: [id])
+  produtoId       Int?
+  produto         Produto?  @relation(fields: [produtoId], references: [id])
+  data            DateTime  @db.Date
+  tipoPeriodo     String    @map("tipo_periodo") @db.VarChar(10) // 'dia', 'semana', 'mes', 'ano'
+  tipoProduto     String    @map("tipo_produto") @db.VarChar(20) // 'Máquina', 'Peça', 'Serviço'
+  valorTotal      Decimal   @map("valor_total") @db.Decimal(15, 2)
+  quantidadeNotas Int       @map("quantidade_notas")
+  quantidadeItens Int       @map("quantidade_itens")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([filialId, data])
+  @@index([produtoId, data])
+  @@index([tipoProduto, data])
+  @@index([tipoPeriodo, data])
+  @@map("receitas_tipo_produto")
+}
+
+model ReceitaProdutoModelo {
+  id              Int       @id @default(autoincrement())
+  filialId        Int?
+  filial          Filial?   @relation(fields: [filialId], references: [id])
+  produtoId       Int
+  produto         Produto   @relation(fields: [produtoId], references: [id])
+  data            DateTime  @db.Date
+  tipoPeriodo     String    @map("tipo_periodo") @db.VarChar(10) // 'dia', 'semana', 'mes', 'ano'
+  valorTotal      Decimal   @map("valor_total") @db.Decimal(15, 2)
+  quantidadeNotas Int       @map("quantidade_notas")
+  quantidadeItens Int       @map("quantidade_itens")
+  ranking         Int?      @map("ranking") // Para identificar o Top N
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([filialId, data])
+  @@index([produtoId, data])
+  @@index([tipoPeriodo, data])
+  @@index([ranking])
+  @@map("receitas_produto_modelo")
+}
+
+model CrescimentoVendas {
+  id              Int       @id @default(autoincrement())
+  filialId        Int?
+  filial          Filial?   @relation(fields: [filialId], references: [id])
+  data            DateTime  @db.Date
+  tipoPeriodo     String    @map("tipo_periodo") @db.VarChar(10) // 'mes', 'ano'
+  tipoComparacao  String    @map("tipo_comparacao") @db.VarChar(10) // 'MoM', 'YoY'
+  valorAtual      Decimal   @map("valor_atual") @db.Decimal(15, 2)
+  valorAnterior   Decimal   @map("valor_anterior") @db.Decimal(15, 2)
+  crescimento     Decimal   @map("crescimento") @db.Decimal(10, 2) // Percentual de crescimento
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([filialId, data])
+  @@index([tipoPeriodo, data])
+  @@index([tipoComparacao])
+  @@map("crescimento_vendas")
+}
+
+model TicketMedio {
+  id                Int       @id @default(autoincrement())
+  filialId          Int?
+  filial            Filial?   @relation(fields: [filialId], references: [id])
+  data              DateTime  @db.Date
+  tipoPeriodo       String    @map("tipo_periodo") @db.VarChar(10) // 'dia', 'semana', 'mes', 'ano'
+  ticketMedioNF     Decimal   @map("ticket_medio_nf") @db.Decimal(15, 2)
+  ticketMedioItem   Decimal   @map("ticket_medio_item") @db.Decimal(15, 2)
+  quantidadeNotas   Int       @map("quantidade_notas")
+  quantidadeItens   Int       @map("quantidade_itens")
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([filialId, data])
+  @@index([tipoPeriodo, data])
+  @@map("ticket_medio")
+}
+
+model ItensPorNF {
+  id              Int       @id @default(autoincrement())
+  filialId        Int?
+  filial          Filial?   @relation(fields: [filialId], references: [id])
+  data            DateTime  @db.Date
+  tipoPeriodo     String    @map("tipo_periodo") @db.VarChar(10) // 'dia', 'semana', 'mes', 'ano'
+  mediaItens      Decimal   @map("media_itens") @db.Decimal(10, 2)
+  p95Itens        Decimal   @map("p95_itens") @db.Decimal(10, 2)
+  quantidadeNotas Int       @map("quantidade_notas")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([filialId, data])
+  @@index([tipoPeriodo, data])
+  @@map("itens_por_nf")
+}
+
+model Sazonalidade {
+  id              Int       @id @default(autoincrement())
+  filialId        Int?
+  filial          Filial?   @relation(fields: [filialId], references: [id])
+  ano             Int
+  mes             Int
+  valorTotal      Decimal   @map("valor_total") @db.Decimal(15, 2)
+  quantidadeNotas Int       @map("quantidade_notas")
+  quantidadeItens Int       @map("quantidade_itens")
+  percentualAno   Decimal   @map("percentual_ano") @db.Decimal(5, 2) // Percentual em relação ao total anual
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([filialId, ano, mes])
+  @@map("sazonalidade")
+}
+
+model ReceitaLocalizacao {
+  id              Int       @id @default(autoincrement())
+  filialId        Int?
+  filial          Filial?   @relation(fields: [filialId], references: [id])
+  cidade          String    @db.VarChar(100)
+  estado          String    @db.VarChar(2)
+  data            DateTime  @db.Date
+  tipoPeriodo     String    @map("tipo_periodo") @db.VarChar(10) // 'dia', 'semana', 'mes', 'ano'
+  valorTotal      Decimal   @map("valor_total") @db.Decimal(15, 2)
+  quantidadeNotas Int       @map("quantidade_notas")
+  quantidadeItens Int       @map("quantidade_itens")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([filialId, data])
+  @@index([cidade, estado])
+  @@index([tipoPeriodo, data])
+  @@map("receitas_localizacao")
+}
+
+model ReceitaVendedor {
+  id              Int       @id @default(autoincrement())
+  filialId        Int?
+  filial          Filial?   @relation(fields: [filialId], references: [id])
+  vendedorId      Int
+  vendedor        Vendedor  @relation(fields: [vendedorId], references: [id])
+  data            DateTime  @db.Date
+  tipoPeriodo     String    @map("tipo_periodo") @db.VarChar(10) // 'dia', 'semana', 'mes', 'ano'
+  valorTotal      Decimal   @map("valor_total") @db.Decimal(15, 2)
+  quantidadeNotas Int       @map("quantidade_notas")
+  quantidadeItens Int       @map("quantidade_itens")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([filialId, data])
+  @@index([vendedorId, data])
+  @@index([tipoPeriodo, data])
+  @@map("receitas_vendedor")
+}
+
+model EstatisticasNotasFiscais {
+  id                Int       @id @default(autoincrement())
+  filialId          Int?
+  filial            Filial?   @relation(fields: [filialId], references: [id])
+  data              DateTime  @db.Date
+  tipoPeriodo       String    @map("tipo_periodo") @db.VarChar(10) // 'dia', 'semana', 'mes', 'ano'
+  quantidadeNotas   Int       @map("quantidade_notas")
+  quantidadeItens   Int       @map("quantidade_itens")
+  mediaItensPorNota Decimal   @map("media_itens_por_nota") @db.Decimal(10, 2)
+  valorTotalNotas   Decimal   @map("valor_total_notas") @db.Decimal(15, 2)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([filialId, data])
+  @@index([tipoPeriodo, data])
+  @@map("estatisticas_notas_fiscais")
 }
