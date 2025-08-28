@@ -100,6 +100,11 @@ model Filial {
   receitasLocalizacao    ReceitaLocalizacao[]
   receitasVendedor       ReceitaVendedor[]
   estatisticasNotasFiscais EstatisticasNotasFiscais[]
+  receitasVendedorDetalhadas ReceitaVendedorDetalhada[]
+  ticketsMediosVendedor  TicketMedioVendedor[]
+  mixVendedores          MixVendedor[]
+  coberturaCarteiras     CoberturaCarteira[]
+  rankingVendedores      RankingVendedores[]
 
   @@map("Filiais")
 }
@@ -111,6 +116,11 @@ model Vendedor {
   filialId        Int?                 @map("ID_Filial")
   notasFiscais    NotasFiscalCabecalho[]
   receitasVendedor ReceitaVendedor[]
+  receitasDetalhadas ReceitaVendedorDetalhada[]
+  ticketsMedios   TicketMedioVendedor[]
+  mixVendas       MixVendedor[]
+  coberturaCarteira CoberturaCarteira[]
+  rankings        RankingVendedores[]
   filial          Filial?              @relation(fields: [filialId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "Vendedores_ibfk_1")
 
   @@index([filialId], map: "ID_Filial")
@@ -416,4 +426,115 @@ model EstatisticasNotasFiscais {
   @@index([filialId, data])
   @@index([tipoPeriodo, data])
   @@map("estatisticas_notas_fiscais")
+}
+
+// Novos modelos para parâmetros específicos de vendedores
+model ReceitaVendedorDetalhada {
+  id                    Int       @id @default(autoincrement())
+  filialId              Int?
+  filial                Filial?   @relation(fields: [filialId], references: [id])
+  vendedorId            Int
+  vendedor              Vendedor  @relation(fields: [vendedorId], references: [id])
+  data                  DateTime  @db.Date
+  tipoPeriodo           String    @map("tipo_periodo") @db.VarChar(10) // 'total', '12meses'
+  receitaTotal          Decimal   @map("receita_total") @db.Decimal(15, 2)
+  numeroNotas           Int       @map("numero_notas")
+  dataInicio            DateTime? @map("data_inicio") @db.Date // Para período de 12 meses
+  dataFim               DateTime? @map("data_fim") @db.Date // Para período de 12 meses
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([filialId, data])
+  @@index([vendedorId, data])
+  @@index([tipoPeriodo])
+  @@map("receita_vendedor_detalhada")
+}
+
+model TicketMedioVendedor {
+  id              Int       @id @default(autoincrement())
+  filialId        Int?
+  filial          Filial?   @relation(fields: [filialId], references: [id])
+  vendedorId      Int
+  vendedor        Vendedor  @relation(fields: [vendedorId], references: [id])
+  data            DateTime  @db.Date
+  tipoPeriodo     String    @map("tipo_periodo") @db.VarChar(10) // 'dia', 'semana', 'mes', 'ano'
+  ticketMedio     Decimal   @map("ticket_medio") @db.Decimal(15, 2)
+  quantidadeNotas Int       @map("quantidade_notas")
+  valorTotal      Decimal   @map("valor_total") @db.Decimal(15, 2)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([filialId, data])
+  @@index([vendedorId, data])
+  @@index([tipoPeriodo, data])
+  @@map("ticket_medio_vendedor")
+}
+
+model MixVendedor {
+  id                    Int       @id @default(autoincrement())
+  filialId              Int?
+  filial                Filial?   @relation(fields: [filialId], references: [id])
+  vendedorId            Int
+  vendedor              Vendedor  @relation(fields: [vendedorId], references: [id])
+  data                  DateTime  @db.Date
+  tipoPeriodo           String    @map("tipo_periodo") @db.VarChar(10) // 'dia', 'semana', 'mes', 'ano'
+  receitaMaquinas       Decimal   @map("receita_maquinas") @db.Decimal(15, 2)
+  receitaPecas          Decimal   @map("receita_pecas") @db.Decimal(15, 2)
+  receitaServicos       Decimal   @map("receita_servicos") @db.Decimal(15, 2)
+  percentualMaquinas    Decimal   @map("percentual_maquinas") @db.Decimal(5, 2)
+  percentualPecas       Decimal   @map("percentual_pecas") @db.Decimal(5, 2)
+  percentualServicos    Decimal   @map("percentual_servicos") @db.Decimal(5, 2)
+  quantidadeNotasMaquinas Int     @map("quantidade_notas_maquinas")
+  quantidadeNotasPecas    Int     @map("quantidade_notas_pecas")
+  quantidadeNotasServicos Int     @map("quantidade_notas_servicos")
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([filialId, data])
+  @@index([vendedorId, data])
+  @@index([tipoPeriodo, data])
+  @@map("mix_vendedor")
+}
+
+model CoberturaCarteira {
+  id                      Int       @id @default(autoincrement())
+  filialId                Int?
+  filial                  Filial?   @relation(fields: [filialId], references: [id])
+  vendedorId              Int
+  vendedor                Vendedor  @relation(fields: [vendedorId], references: [id])
+  data                    DateTime  @db.Date
+  tipoPeriodo             String    @map("tipo_periodo") @db.VarChar(10) // 'mes', 'trimestre', 'ano'
+  clientesUnicosAtendidos Int       @map("clientes_unicos_atendidos")
+  clientesAtivos          Int       @map("clientes_ativos") // Total de clientes ativos na carteira
+  percentualCobertura     Decimal   @map("percentual_cobertura") @db.Decimal(5, 2)
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([filialId, data])
+  @@index([vendedorId, data])
+  @@index([tipoPeriodo, data])
+  @@map("cobertura_carteira")
+}
+
+model RankingVendedores {
+  id                Int       @id @default(autoincrement())
+  filialId          Int?
+  filial            Filial?   @relation(fields: [filialId], references: [id])
+  vendedorId        Int
+  vendedor          Vendedor  @relation(fields: [vendedorId], references: [id])
+  data              DateTime  @db.Date
+  tipoPeriodo       String    @map("tipo_periodo") @db.VarChar(10) // 'mes', 'trimestre', 'ano'
+  tipoRanking       String    @map("tipo_ranking") @db.VarChar(20) // 'receita', 'ticket_medio'
+  posicaoRanking    Int       @map("posicao_ranking")
+  valorMetrica      Decimal   @map("valor_metrica") @db.Decimal(15, 2) // Valor da receita ou ticket médio
+  totalVendedores   Int       @map("total_vendedores") // Total de vendedores no ranking
+  percentilRanking  Decimal   @map("percentil_ranking") @db.Decimal(5, 2) // Percentil do vendedor
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([filialId, data])
+  @@index([vendedorId, data])
+  @@index([tipoPeriodo, data])
+  @@index([tipoRanking, posicaoRanking])
+  @@map("ranking_vendedores")
 }

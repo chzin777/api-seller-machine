@@ -35,6 +35,13 @@ import receitaLocalizacaoRoutes from './routes/receitaLocalizacaoRoutes';
 import receitaVendedorRoutes from './routes/receitaVendedorRoutes';
 import estatisticasNotasFiscaisRoutes from './routes/estatisticasNotasFiscaisRoutes';
 
+// Import new seller-specific parameter routes
+import receitaVendedorDetalhadaRoutes from './routes/receitaVendedorDetalhadaRoutes';
+import ticketMedioVendedorRoutes from './routes/ticketMedioVendedorRoutes';
+import mixVendedorRoutes from './routes/mixVendedorRoutes';
+import coberturaCarteiraRoutes from './routes/coberturaCarteiraRoutes';
+import rankingVendedoresRoutes from './routes/rankingVendedoresRoutes';
+
 
 export const prisma = new PrismaClient();
 const app = express();
@@ -104,6 +111,13 @@ app.use('/api/sazonalidade', sazonalidadeRoutes);
 app.use('/api/receita-localizacao', receitaLocalizacaoRoutes);
 app.use('/api/receita-vendedor', receitaVendedorRoutes);
 app.use('/api/estatisticas-notas-fiscais', estatisticasNotasFiscaisRoutes);
+
+// API Routes - New Seller-Specific Parameters
+app.use('/api/receita-vendedor-detalhada', receitaVendedorDetalhadaRoutes);
+app.use('/api/ticket-medio-vendedor', ticketMedioVendedorRoutes);
+app.use('/api/mix-vendedor', mixVendedorRoutes);
+app.use('/api/cobertura-carteira', coberturaCarteiraRoutes);
+app.use('/api/ranking-vendedores', rankingVendedoresRoutes);
 
 
 // Error handling middlewares (must be last)
