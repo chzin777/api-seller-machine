@@ -105,6 +105,10 @@ model Filial {
   mixVendedores          MixVendedor[]
   coberturaCarteiras     CoberturaCarteira[]
   rankingVendedores      RankingVendedores[]
+  receitasFilial         ReceitaFilial[]
+  mixFiliais             MixFilial[]
+  participacaoReceita    ParticipacaoReceitaFilial[]
+  receitasRegioes        ReceitaFilialRegiao[]
 
   @@map("Filiais")
 }
@@ -537,4 +541,89 @@ model RankingVendedores {
   @@index([tipoPeriodo, data])
   @@index([tipoRanking, posicaoRanking])
   @@map("ranking_vendedores")
+}
+
+// Novos modelos para parâmetros específicos de filiais
+model ReceitaFilial {
+  id              Int       @id @default(autoincrement())
+  filialId        Int
+  filial          Filial    @relation(fields: [filialId], references: [id])
+  data            DateTime  @db.Date
+  tipoPeriodo     String    @map("tipo_periodo") @db.VarChar(10) // 'dia', 'semana', 'mes', 'ano'
+  receitaTotal    Decimal   @map("receita_total") @db.Decimal(15, 2)
+  numeroNotas     Int       @map("numero_notas")
+  ticketMedio     Decimal   @map("ticket_medio") @db.Decimal(15, 2)
+  numeroItens     Int       @map("numero_itens")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([filialId, data])
+  @@index([tipoPeriodo, data])
+  @@map("receita_filial")
+}
+
+model MixFilial {
+  id                      Int       @id @default(autoincrement())
+  filialId                Int
+  filial                  Filial    @relation(fields: [filialId], references: [id])
+  data                    DateTime  @db.Date
+  tipoPeriodo             String    @map("tipo_periodo") @db.VarChar(10) // 'dia', 'semana', 'mes', 'ano'
+  receitaMaquinas         Decimal   @map("receita_maquinas") @db.Decimal(15, 2)
+  receitaPecas            Decimal   @map("receita_pecas") @db.Decimal(15, 2)
+  receitaServicos         Decimal   @map("receita_servicos") @db.Decimal(15, 2)
+  percentualMaquinas      Decimal   @map("percentual_maquinas") @db.Decimal(5, 2)
+  percentualPecas         Decimal   @map("percentual_pecas") @db.Decimal(5, 2)
+  percentualServicos      Decimal   @map("percentual_servicos") @db.Decimal(5, 2)
+  quantidadeNotasMaquinas Int       @map("quantidade_notas_maquinas")
+  quantidadeNotasPecas    Int       @map("quantidade_notas_pecas")
+  quantidadeNotasServicos Int       @map("quantidade_notas_servicos")
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([filialId, data])
+  @@index([tipoPeriodo, data])
+  @@map("mix_filial")
+}
+
+model ParticipacaoReceitaFilial {
+  id                    Int       @id @default(autoincrement())
+  filialId              Int
+  filial                Filial    @relation(fields: [filialId], references: [id])
+  data                  DateTime  @db.Date
+  tipoPeriodo           String    @map("tipo_periodo") @db.VarChar(10) // 'mes', 'trimestre', 'ano'
+  receitaFilial         Decimal   @map("receita_filial") @db.Decimal(15, 2)
+  receitaTotalEmpresa   Decimal   @map("receita_total_empresa") @db.Decimal(15, 2)
+  percentualParticipacao Decimal  @map("percentual_participacao") @db.Decimal(5, 2)
+  posicaoRanking        Int       @map("posicao_ranking")
+  totalFiliais          Int       @map("total_filiais")
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([filialId, data])
+  @@index([tipoPeriodo, data])
+  @@index([posicaoRanking])
+  @@map("participacao_receita_filial")
+}
+
+model ReceitaFilialRegiao {
+  id              Int       @id @default(autoincrement())
+  filialId        Int
+  filial          Filial    @relation(fields: [filialId], references: [id])
+  data            DateTime  @db.Date
+  tipoPeriodo     String    @map("tipo_periodo") @db.VarChar(10) // 'mes', 'trimestre', 'ano'
+  regiaoCliente   String    @map("regiao_cliente") @db.VarChar(50) // Norte, Nordeste, Centro-Oeste, Sudeste, Sul
+  estadoCliente   String    @map("estado_cliente") @db.VarChar(2)
+  cidadeCliente   String    @map("cidade_cliente") @db.VarChar(100)
+  receitaRegiao   Decimal   @map("receita_regiao") @db.Decimal(15, 2)
+  numeroNotas     Int       @map("numero_notas")
+  numeroClientes  Int       @map("numero_clientes") // Clientes únicos atendidos nesta região
+  percentualReceita Decimal @map("percentual_receita") @db.Decimal(5, 2) // % em relação ao total da filial
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([filialId, data])
+  @@index([tipoPeriodo, data])
+  @@index([regiaoCliente])
+  @@index([estadoCliente, cidadeCliente])
+  @@map("receita_filial_regiao")
 }

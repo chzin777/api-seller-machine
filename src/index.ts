@@ -41,6 +41,10 @@ import ticketMedioVendedorRoutes from './routes/ticketMedioVendedorRoutes';
 import mixVendedorRoutes from './routes/mixVendedorRoutes';
 import coberturaCarteiraRoutes from './routes/coberturaCarteiraRoutes';
 import rankingVendedoresRoutes from './routes/rankingVendedoresRoutes';
+import receitaFilialRoutes from './routes/receitaFilialRoutes';
+import mixFilialRoutes from './routes/mixFilialRoutes';
+import participacaoReceitaFilialRoutes from './routes/participacaoReceitaFilialRoutes';
+import receitaFilialRegiaoRoutes from './routes/receitaFilialRegiaoRoutes';
 
 
 export const prisma = new PrismaClient();
@@ -56,7 +60,7 @@ app.use(express.json());
 // Libera CORS para localhost e produção
 const allowedOrigins = [
     'http://localhost:3000', // frontend local
-    'https://seusite.com'   // troque pelo domínio real de produção
+    'https://seller-machine-eight.vercel.app/'   // troque pelo domínio real de produção
 ];
 app.use(cors({
     origin: (origin, callback) => {
@@ -102,6 +106,7 @@ app.use('/api/indicadores', indicatorRoutes);
 app.use('/api/rfv', rfvRoutes); // *** NEW ***
 app.use('/api/rfv-segments', rfvSegmentRoutes); // *** NEW ***
 
+// API Routes - RFV empresas
 app.use('/api/empresas', empresaRoutes); // *** NEW ***
 
 // API Routes - Sales Parameters
@@ -118,6 +123,10 @@ app.use('/api/ticket-medio-vendedor', ticketMedioVendedorRoutes);
 app.use('/api/mix-vendedor', mixVendedorRoutes);
 app.use('/api/cobertura-carteira', coberturaCarteiraRoutes);
 app.use('/api/ranking-vendedores', rankingVendedoresRoutes);
+app.use('/api/receita-filial', receitaFilialRoutes);
+app.use('/api/mix-filial', mixFilialRoutes);
+app.use('/api/participacao-receita-filial', participacaoReceitaFilialRoutes);
+app.use('/api/receita-filial-regiao', receitaFilialRegiaoRoutes);
 
 
 // Error handling middlewares (must be last)
