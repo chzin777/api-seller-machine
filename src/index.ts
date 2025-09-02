@@ -46,6 +46,11 @@ import mixFilialRoutes from './routes/mixFilialRoutes';
 import participacaoReceitaFilialRoutes from './routes/participacaoReceitaFilialRoutes';
 import receitaFilialRegiaoRoutes from './routes/receitaFilialRegiaoRoutes';
 
+// Import parametrization routes
+import configuracaoInatividadeRoutes from './routes/configuracaoInatividadeRoutes';
+import rfvTipoNegocioRoutes from './routes/rfvTipoNegocioRoutes';
+import proxyRoutes from './routes/proxyRoutes';
+
 
 export const prisma = new PrismaClient();
 const app = express();
@@ -60,7 +65,8 @@ app.use(express.json());
 // Libera CORS para localhost e produção
 const allowedOrigins = [
     'http://localhost:3000', // frontend local
-    'https://seller-machine-eight.vercel.app/'   // troque pelo domínio real de produção
+    'https://seller-machine-eight.vercel.app',   // site de produção
+    'https://seller-machine-eight.vercel.app/'   // site de produção com barra final
 ];
 app.use(cors({
     origin: (origin, callback) => {
@@ -127,6 +133,13 @@ app.use('/api/receita-filial', receitaFilialRoutes);
 app.use('/api/mix-filial', mixFilialRoutes);
 app.use('/api/participacao-receita-filial', participacaoReceitaFilialRoutes);
 app.use('/api/receita-filial-regiao', receitaFilialRegiaoRoutes);
+
+// Parametrization routes
+app.use('/api/configuracao-inatividade', configuracaoInatividadeRoutes);
+app.use('/api/rfv-tipo-negocio', rfvTipoNegocioRoutes);
+
+// Proxy route
+app.use('/api/proxy', proxyRoutes);
 
 
 // Error handling middlewares (must be last)

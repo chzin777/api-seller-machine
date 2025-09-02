@@ -215,3 +215,36 @@ export const createApiResponse = <T>(
         timestamp: new Date().toISOString()
     };
 };
+
+/**
+ * Determina o ranking automático Bronze/Prata/Ouro/Diamante baseado na soma dos scores RFV
+ * @param rScore Score de Recência (1-5)
+ * @param fScore Score de Frequência (1-5)
+ * @param vScore Score de Valor (1-5)
+ * @returns Ranking automático
+ */
+export const determineAutomaticRanking = (rScore: number, fScore: number, vScore: number): string => {
+    const totalScore = rScore + fScore + vScore;
+    
+    // Definição dos ranges para cada ranking
+    // Total possível: 3 (mínimo) a 15 (máximo)
+    if (totalScore >= 13) {
+        return 'Diamante'; // 13-15 pontos
+    } else if (totalScore >= 10) {
+        return 'Ouro'; // 10-12 pontos
+    } else if (totalScore >= 7) {
+        return 'Prata'; // 7-9 pontos
+    } else {
+        return 'Bronze'; // 3-6 pontos
+    }
+};
+
+/**
+ * Configuração padrão dos ranges de ranking automático
+ */
+export const DEFAULT_RANKING_RANGES = {
+    Diamante: { min: 13, max: 15, color: '#E3F2FD', description: 'Clientes de altíssimo valor' },
+    Ouro: { min: 10, max: 12, color: '#FFF3E0', description: 'Clientes de alto valor' },
+    Prata: { min: 7, max: 9, color: '#F3E5F5', description: 'Clientes de valor médio' },
+    Bronze: { min: 3, max: 6, color: '#EFEBE9', description: 'Clientes de baixo valor' }
+};

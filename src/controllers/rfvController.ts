@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../index';
 import { Prisma } from '@prisma/client';
+import { determineAutomaticRanking } from '../utils/helpers';
 
 // --- Helper functions for Scoring ---
 const getRecencyScore = (days: number, rules: any) => {
@@ -180,11 +181,13 @@ export const calculateRfvScores = async (req: Request, res: Response) => {
             const vScore = getValueScore(metrics.value, activeRuleSet.ruleValue as Prisma.JsonObject);
             
             const segmentName = determineSegmentClass(rScore, fScore, vScore, segments);
+            const automaticRanking = determineAutomaticRanking(rScore, fScore, vScore);
 
             scoredCustomers.push({
                 clienteId, ...metrics, rScore, fScore, vScore,
                 rfvSegment: `${rScore}${fScore}${vScore}`,
-                segmentName
+                segmentName,
+                automaticRanking
             });
         }
         
