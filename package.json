@@ -6,16 +6,16 @@
   "scripts": {
     "start": "npm run build && node dist/index.js",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "npx prisma generate && npx tsc",
-    "build:watch": "tsc --watch",
-    "clean": "rimraf dist",
-    "lint": "eslint src/**/*.ts",
-    "test": "echo \"Tests not implemented yet\" && exit 0",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:studio": "prisma studio",
-    "db:seed": "ts-node prisma/seed.ts",
-    "heroku-postbuild": "npm install --include=dev && npm run build"
+  "build": "npx prisma generate && npx tsc",
+  "build:watch": "tsc --watch",
+  "clean": "rimraf dist",
+  "lint": "eslint src/**/*.ts",
+  "test": "echo \"Tests not implemented yet\" && exit 0",
+  "db:generate": "npx prisma generate",
+  "db:push": "npx prisma db push",
+  "db:studio": "npx prisma studio",
+  "db:seed": "ts-node prisma/seed.ts",
+  "heroku-postbuild": "npm install --include=dev && npm run build"
   },
   "keywords": [
     "typescript",
