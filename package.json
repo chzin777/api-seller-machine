@@ -4,9 +4,9 @@
   "description": "API TypeScript para gestão de vendas e estoque - Sistema interno",
   "main": "dist/index.js",
   "scripts": {
-    "start": "npm run build && node dist/index.js",
+    "start": "npx prisma generate && node dist/index.js",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "npm install --production=false && npx prisma generate && npx tsc",
+    "build": "npx tsc",
   "build:watch": "tsc --watch",
   "clean": "rimraf dist",
   "lint": "eslint src/**/*.ts",
