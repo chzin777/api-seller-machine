@@ -62,22 +62,21 @@ validateEnvironment();
 app.use(express.json());
 
 
-// Libera CORS para localhost e produção
+// CORS: permite apenas localhost e produção Vercel
 const allowedOrigins = [
-    'http://localhost:3000', // frontend local
-    'https://seller-machine-eight.vercel.app',   // site de produção
-    'https://seller-machine-eight.vercel.app/'   // site de produção com barra final
+    'http://localhost:3000',
+    'https://seusite.vercel.app'
 ];
 app.use(cors({
     origin: (origin, callback) => {
-        // Permite requests sem origin (ex: ferramentas internas, curl)
         if (!origin) return callback(null, true);
         if (allowedOrigins.includes(origin)) {
             return callback(null, true);
-        } else {
-            return callback(new Error('Not allowed by CORS'));
         }
+        return callback(new Error('Not allowed by CORS'));
     },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
 // Global middlewares
