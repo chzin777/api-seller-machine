@@ -65,7 +65,7 @@ app.use(express.json());
 // CORS: permite apenas localhost e produção Vercel
 const allowedOrigins = [
     'http://localhost:3000',
-    'https://seusite.vercel.app'
+    'https://seller-machine-eight.vercel.app'
 ];
 app.use(cors({
     origin: (origin, callback) => {
