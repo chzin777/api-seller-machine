@@ -9,7 +9,7 @@ npm ci
 
 # Gerar Prisma Client
 echo "Generating Prisma Client..."
-./node_modules/.bin/prisma generate
+npx prisma generate
 
 # Compilar TypeScript
 echo "Compiling TypeScript..."
