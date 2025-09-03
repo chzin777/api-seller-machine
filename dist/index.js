@@ -46,10 +46,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.prisma = void 0;
+const associacoesRoutes_1 = __importDefault(require("./routes/associacoesRoutes"));
 const dotenv = __importStar(require("dotenv"));
 dotenv.config(); // This line loads the .env file
 const express_1 = __importDefault(require("express"));
 const client_1 = require("@prisma/client");
+const cors_1 = __importDefault(require("cors")); // Import cors for CORS configuration
 // Import configuration
 const environment_1 = require("./config/environment");
 // Import middlewares
@@ -68,12 +70,51 @@ const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const rfvRoutes_1 = __importDefault(require("./routes/rfvRoutes")); // *** NEW ***
 const empresaRoutes_1 = __importDefault(require("./routes/empresaRoutes")); // *** NEW ***
 const rfvSegmentRoutes_1 = __importDefault(require("./routes/rfvSegmentRoutes")); // *** NEW ***
+// Import sales parameter routes
+const ticketMedioRoutes_1 = __importDefault(require("./routes/ticketMedioRoutes"));
+const itensPorNFRoutes_1 = __importDefault(require("./routes/itensPorNFRoutes"));
+const sazonalidadeRoutes_1 = __importDefault(require("./routes/sazonalidadeRoutes"));
+const receitaLocalizacaoRoutes_1 = __importDefault(require("./routes/receitaLocalizacaoRoutes"));
+const receitaVendedorRoutes_1 = __importDefault(require("./routes/receitaVendedorRoutes"));
+const estatisticasNotasFiscaisRoutes_1 = __importDefault(require("./routes/estatisticasNotasFiscaisRoutes"));
+// Import new seller-specific parameter routes
+const receitaVendedorDetalhadaRoutes_1 = __importDefault(require("./routes/receitaVendedorDetalhadaRoutes"));
+const ticketMedioVendedorRoutes_1 = __importDefault(require("./routes/ticketMedioVendedorRoutes"));
+const mixVendedorRoutes_1 = __importDefault(require("./routes/mixVendedorRoutes"));
+const coberturaCarteiraRoutes_1 = __importDefault(require("./routes/coberturaCarteiraRoutes"));
+const rankingVendedoresRoutes_1 = __importDefault(require("./routes/rankingVendedoresRoutes"));
+const receitaFilialRoutes_1 = __importDefault(require("./routes/receitaFilialRoutes"));
+const mixFilialRoutes_1 = __importDefault(require("./routes/mixFilialRoutes"));
+const participacaoReceitaFilialRoutes_1 = __importDefault(require("./routes/participacaoReceitaFilialRoutes"));
+const receitaFilialRegiaoRoutes_1 = __importDefault(require("./routes/receitaFilialRegiaoRoutes"));
+// Import parametrization routes
+const configuracaoInatividadeRoutes_1 = __importDefault(require("./routes/configuracaoInatividadeRoutes"));
+const rfvTipoNegocioRoutes_1 = __importDefault(require("./routes/rfvTipoNegocioRoutes"));
+const proxyRoutes_1 = __importDefault(require("./routes/proxyRoutes"));
 exports.prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
 // Validate environment variables
 (0, environment_1.validateEnvironment)();
 // Middleware to parse JSON bodies
 app.use(express_1.default.json());
+// CORS: permite apenas localhost e produção Vercel
+const allowedOrigins = [
+    'http://localhost:3000',
+    'https://seller-machine-eight.vercel.app'
+];
+app.use((0, cors_1.default)({
+    origin: (origin, callback) => {
+        if (!origin)
+            return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error('Not allowed by CORS'));
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
 // Global middlewares
 app.use(validation_1.sanitizeStrings);
 // API Home Route
@@ -87,6 +128,8 @@ app.use('/api/filiais', filialRoutes_1.default);
 app.use('/api/clientes', clienteRoutes_1.default);
 app.use('/api/produtos', produtoRoutes_1.default);
 app.use('/api/vendedores', vendedorRoutes_1.default);
+// API Routes - Associações de Produtos
+app.use('/api/associacoes', associacoesRoutes_1.default);
 // API Routes - Transactions
 app.use('/api/notas-fiscais', notaFiscalRoutes_1.default);
 app.use('/api/notas-fiscais-itens', notaFiscalItemRoutes_1.default);
@@ -95,8 +138,31 @@ app.use('/api/estoque', maquinaEstoqueRoutes_1.default);
 app.use('/api/indicadores', indicatorRoutes_1.default);
 // API Routes - RFV strategy
 app.use('/api/rfv', rfvRoutes_1.default); // *** NEW ***
+app.use('/api/rfv-segments', rfvSegmentRoutes_1.default); // *** NEW ***
+// API Routes - RFV empresas
 app.use('/api/empresas', empresaRoutes_1.default); // *** NEW ***
-app.use('/api/rfv/segments', rfvSegmentRoutes_1.default); // *** NEW ***
+// API Routes - Sales Parameters
+app.use('/api/ticket-medio', ticketMedioRoutes_1.default);
+app.use('/api/itens-por-nf', itensPorNFRoutes_1.default);
+app.use('/api/sazonalidade', sazonalidadeRoutes_1.default);
+app.use('/api/receita-localizacao', receitaLocalizacaoRoutes_1.default);
+app.use('/api/receita-vendedor', receitaVendedorRoutes_1.default);
+app.use('/api/estatisticas-notas-fiscais', estatisticasNotasFiscaisRoutes_1.default);
+// API Routes - New Seller-Specific Parameters
+app.use('/api/receita-vendedor-detalhada', receitaVendedorDetalhadaRoutes_1.default);
+app.use('/api/ticket-medio-vendedor', ticketMedioVendedorRoutes_1.default);
+app.use('/api/mix-vendedor', mixVendedorRoutes_1.default);
+app.use('/api/cobertura-carteira', coberturaCarteiraRoutes_1.default);
+app.use('/api/ranking-vendedores', rankingVendedoresRoutes_1.default);
+app.use('/api/receita-filial', receitaFilialRoutes_1.default);
+app.use('/api/mix-filial', mixFilialRoutes_1.default);
+app.use('/api/participacao-receita-filial', participacaoReceitaFilialRoutes_1.default);
+app.use('/api/receita-filial-regiao', receitaFilialRegiaoRoutes_1.default);
+// Parametrization routes
+app.use('/api/configuracao-inatividade', configuracaoInatividadeRoutes_1.default);
+app.use('/api/rfv-tipo-negocio', rfvTipoNegocioRoutes_1.default);
+// Proxy route
+app.use('/api/proxy', proxyRoutes_1.default);
 // Error handling middlewares (must be last)
 app.use(errorHandler_1.notFoundHandler);
 app.use(errorHandler_1.errorHandler);

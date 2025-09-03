@@ -16,7 +16,7 @@
     "db:studio": "npx prisma studio",
     "db:seed": "ts-node prisma/seed.ts",
     "heroku-postbuild": "npm install --include=dev && npm run build",
-  "postinstall": "npx prisma generate"
+    "postinstall": "npx prisma generate"
   },
   "keywords": [
     "typescript",
@@ -29,6 +29,10 @@
   "author": "Desenvolvimento Interno",
   "license": "UNLICENSED",
   "private": true,
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
   "dependencies": {
     "@prisma/client": "^5.15.0",
     "axios": "^1.11.0",
