@@ -53,6 +53,8 @@ import proxyRoutes from './routes/proxyRoutes';
 
 // Import CRM routes
 import crmRoutes from './routes/crmRoutes';
+// Import Mix Portfolio routes
+import mixPortfolioRoutes from './routes/mixPortfolioRoutes';
 
 
 export const prisma = new PrismaClient();
@@ -143,7 +145,10 @@ app.use('/api/rfv-tipo-negocio', rfvTipoNegocioRoutes);
 // CRM routes
 app.use('/api/crm', crmRoutes);
 
-// Proxy route
+// Mix Portfolio routes
+app.use('/api/mix-portfolio', mixPortfolioRoutes);
+
+// Proxy routes
 app.use('/api/proxy', proxyRoutes);
 
 

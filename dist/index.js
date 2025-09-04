@@ -91,6 +91,10 @@ const receitaFilialRegiaoRoutes_1 = __importDefault(require("./routes/receitaFil
 const configuracaoInatividadeRoutes_1 = __importDefault(require("./routes/configuracaoInatividadeRoutes"));
 const rfvTipoNegocioRoutes_1 = __importDefault(require("./routes/rfvTipoNegocioRoutes"));
 const proxyRoutes_1 = __importDefault(require("./routes/proxyRoutes"));
+// Import CRM routes
+const crmRoutes_1 = __importDefault(require("./routes/crmRoutes"));
+// Import Mix Portfolio routes
+const mixPortfolioRoutes_1 = __importDefault(require("./routes/mixPortfolioRoutes"));
 exports.prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
 // Validate environment variables
@@ -161,7 +165,11 @@ app.use('/api/receita-filial-regiao', receitaFilialRegiaoRoutes_1.default);
 // Parametrization routes
 app.use('/api/configuracao-inatividade', configuracaoInatividadeRoutes_1.default);
 app.use('/api/rfv-tipo-negocio', rfvTipoNegocioRoutes_1.default);
-// Proxy route
+// CRM routes
+app.use('/api/crm', crmRoutes_1.default);
+// Mix Portfolio routes
+app.use('/api/mix-portfolio', mixPortfolioRoutes_1.default);
+// Proxy routes
 app.use('/api/proxy', proxyRoutes_1.default);
 // Error handling middlewares (must be last)
 app.use(errorHandler_1.notFoundHandler);
