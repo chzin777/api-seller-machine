@@ -51,6 +51,9 @@ import configuracaoInatividadeRoutes from './routes/configuracaoInatividadeRoute
 import rfvTipoNegocioRoutes from './routes/rfvTipoNegocioRoutes';
 import proxyRoutes from './routes/proxyRoutes';
 
+// Import CRM routes
+import crmRoutes from './routes/crmRoutes';
+
 
 export const prisma = new PrismaClient();
 const app = express();
@@ -136,6 +139,9 @@ app.use('/api/receita-filial-regiao', receitaFilialRegiaoRoutes);
 // Parametrization routes
 app.use('/api/configuracao-inatividade', configuracaoInatividadeRoutes);
 app.use('/api/rfv-tipo-negocio', rfvTipoNegocioRoutes);
+
+// CRM routes
+app.use('/api/crm', crmRoutes);
 
 // Proxy route
 app.use('/api/proxy', proxyRoutes);
