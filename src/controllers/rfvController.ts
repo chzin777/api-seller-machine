@@ -362,3 +362,26 @@ export const deleteRfvSegment = async (req: Request, res: Response) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+// DELETE an RFV parameter set
+export const deleteRfvParameterSet = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        const parameterSet = await prisma.rfvParameterSet.findUnique({
+            where: { id: parseInt(id) }
+        });
+
+        if (!parameterSet) {
+            return res.status(404).json({ error: 'Parameter set not found' });
+        }
+
+        await prisma.rfvParameterSet.delete({
+            where: { id: parseInt(id) }
+        });
+
+        res.status(200).json({ message: 'Parameter set deleted successfully' });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+};
