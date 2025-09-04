@@ -20,7 +20,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteRfvSegment = exports.updateRfvSegment = exports.getRfvSegments = exports.createRfvSegment = exports.calculateRfvScores = exports.createRfvParameterSet = void 0;
+exports.deleteRfvSegment = exports.updateRfvSegment = exports.getRfvSegments = exports.createRfvSegment = exports.calculateRfvScores = exports.createRfvParameterSet = exports.getRfvParameterSets = void 0;
 const index_1 = require("../index");
 const helpers_1 = require("../utils/helpers");
 // --- Helper functions for Scoring ---
@@ -122,6 +122,50 @@ const evaluateCondition = (score, condition) => {
         return false;
     }
 };
+// GET all RFV parameter sets
+const getRfvParameterSets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { filialId, active } = req.query;
+        const asOfDate = new Date();
+        let where = {};
+        // Filter by filial if provided
+        if (filialId) {
+            where.OR = [
+                { filialId: parseInt(filialId) },
+                { filialId: null }
+            ];
+        }
+        // Filter only active parameters if requested
+        if (active === 'true') {
+            where.AND = [
+                where.OR ? { OR: where.OR } : {},
+                { effectiveFrom: { lte: asOfDate } },
+                { OR: [{ effectiveTo: { gte: asOfDate } }, { effectiveTo: null }] }
+            ];
+            delete where.OR; // Remove OR from root level since it's now in AND
+        }
+        const parameterSets = yield index_1.prisma.rfvParameterSet.findMany({
+            where,
+            include: {
+                filial: {
+                    select: { id: true, nome: true }
+                },
+                segments: {
+                    select: { id: true, name: true, priority: true }
+                }
+            },
+            orderBy: [
+                { filialId: 'asc' },
+                { effectiveFrom: 'desc' }
+            ]
+        });
+        res.status(200).json(parameterSets);
+    }
+    catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+exports.getRfvParameterSets = getRfvParameterSets;
 // CREATE a new RFV parameter set
 const createRfvParameterSet = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {

@@ -99,6 +99,54 @@ const evaluateCondition = (score: number, condition: string): boolean => {
     }
 };
 
+// GET all RFV parameter sets
+export const getRfvParameterSets = async (req: Request, res: Response) => {
+    try {
+        const { filialId, active } = req.query;
+        const asOfDate = new Date();
+
+        let where: any = {};
+
+        // Filter by filial if provided
+        if (filialId) {
+            where.OR = [
+                { filialId: parseInt(filialId as string) },
+                { filialId: null }
+            ];
+        }
+
+        // Filter only active parameters if requested
+        if (active === 'true') {
+            where.AND = [
+                where.OR ? { OR: where.OR } : {},
+                { effectiveFrom: { lte: asOfDate } },
+                { OR: [{ effectiveTo: { gte: asOfDate } }, { effectiveTo: null }] }
+            ];
+            delete where.OR; // Remove OR from root level since it's now in AND
+        }
+
+        const parameterSets = await prisma.rfvParameterSet.findMany({
+            where,
+            include: {
+                filial: {
+                    select: { id: true, nome: true }
+                },
+                segments: {
+                    select: { id: true, name: true, priority: true }
+                }
+            },
+            orderBy: [
+                { filialId: 'asc' },
+                { effectiveFrom: 'desc' }
+            ]
+        });
+
+        res.status(200).json(parameterSets);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 // CREATE a new RFV parameter set
 export const createRfvParameterSet = async (req: Request, res: Response) => {
     try {
