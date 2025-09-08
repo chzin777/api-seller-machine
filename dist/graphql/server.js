@@ -5,9 +5,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createGraphQLServer = createGraphQLServer;
 const server_1 = require("@apollo/server");
-const standalone_1 = require("@apollo/server/standalone");
 const type_graphql_1 = require("type-graphql");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors"));
+const body_parser_1 = require("body-parser");
 const index_1 = require("../index");
 const CrmResolver_1 = require("./resolvers/CrmResolver");
 const MixPortfolioResolver_1 = require("./resolvers/MixPortfolioResolver");
@@ -41,8 +43,7 @@ async function createGraphQLServer(app) {
         // Create Apollo Server
         const server = new server_1.ApolloServer({
             schema,
-            introspection: true, // Always enable introspection for GraphQL Playground
-            includeStacktraceInErrorResponses: process.env.NODE_ENV !== 'production'
+            introspection: true
         });
         await server.start();
         // If Express app is provided (production), integrate with Express
@@ -52,8 +53,6 @@ async function createGraphQLServer(app) {
                     const user = await getUser(req.headers.authorization);
                     // Create fresh DataLoaders for each request to prevent cache leaking between requests
                     const dataLoaders = (0, dataloader_1.createDataLoaders)(index_1.prisma);
-                    // Set DataLoaders in cache manager for manual cache control if needed
-                    dataloader_1.CacheManager.getInstance().setDataLoaders(dataLoaders);
                     const context = {
                         prisma: index_1.prisma,
                         dataLoaders,
@@ -98,24 +97,60 @@ async function createGraphQLServer(app) {
             return { server, url: '/graphql' };
         }
         else {
-            // Development mode: standalone server
-            const { url } = await (0, standalone_1.startStandaloneServer)(server, {
-                listen: { port: 4000 },
-                context: async ({ req }) => {
+            // Development mode: create simple Express server
+            const devApp = (0, express_1.default)();
+            // Enable CORS and JSON parsing
+            devApp.use((0, cors_1.default)());
+            devApp.use((0, body_parser_1.json)());
+            // GraphQL endpoint
+            devApp.post('/graphql', async (req, res) => {
+                try {
                     const user = await getUser(req.headers.authorization);
-                    // Create fresh DataLoaders for each request to prevent cache leaking between requests
                     const dataLoaders = (0, dataloader_1.createDataLoaders)(index_1.prisma);
-                    // Set DataLoaders in cache manager for manual cache control if needed
-                    dataloader_1.CacheManager.getInstance().setDataLoaders(dataLoaders);
-                    return {
+                    const context = {
                         prisma: index_1.prisma,
                         dataLoaders,
                         user
                     };
+                    // Execute GraphQL query
+                    const response = await server.executeOperation({
+                        query: req.body.query,
+                        variables: req.body.variables,
+                        operationName: req.body.operationName
+                    }, { contextValue: context });
+                    res.json(response.body);
+                }
+                catch (error) {
+                    console.error('GraphQL execution error:', error);
+                    res.status(500).json({ error: 'Internal server error' });
                 }
             });
-            console.log(`🚀 GraphQL Server ready at: ${url}`);
-            return { server, url };
+            // GraphQL Playground for development
+            devApp.get('/graphql', (req, res) => {
+                res.send(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>GraphQL Playground</title>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphql-playground-react/build/static/css/index.css" />
+          </head>
+          <body>
+            <div id="root">
+              <style>
+                body { margin: 0; font-family: Open Sans, sans-serif; overflow: hidden; }
+                #root { height: 100vh; }
+              </style>
+            </div>
+            <script src="https://cdn.jsdelivr.net/npm/graphql-playground-react/build/static/js/middleware.js"></script>
+          </body>
+          </html>
+        `);
+            });
+            const port = 4000;
+            const devServer = devApp.listen(port, () => {
+                console.log(`🚀 GraphQL Server ready at: http://localhost:${port}/graphql`);
+            });
+            return { server, url: `http://localhost:${port}/graphql` };
         }
     }
     catch (error) {

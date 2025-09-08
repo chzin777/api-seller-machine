@@ -2,7 +2,10 @@ import { Resolver, Query, Arg } from 'type-graphql';
 import {
   CrmAnaliseInput,
   InatividadeAnalise,
-  NovosRecorrentesAnalise
+  NovosRecorrentesAnalise,
+  Cliente,
+  ClientesResponse,
+  ClientesInput
 } from '../types/CrmTypes';
 import { PrismaClient } from '@prisma/client';
 
@@ -291,5 +294,82 @@ export class CrmResolver {
     }
   }
 
+  @Query(() => ClientesResponse)
+  async clientes(
+    @Arg('input', { nullable: true }) input?: ClientesInput
+  ): Promise<ClientesResponse> {
+    try {
+      const whereClause: any = {};
+      
+      if (input?.nome) {
+        whereClause.nome = {
+          contains: input.nome,
+          mode: 'insensitive'
+        };
+      }
+      
+      if (input?.cidade) {
+        whereClause.cidade = {
+          contains: input.cidade,
+          mode: 'insensitive'
+        };
+      }
+      
+      if (input?.estado) {
+        whereClause.estado = input.estado;
+      }
+      
+      // Se filialId for fornecido, filtrar por clientes que fizeram compras nesta filial
+      if (input?.filialId) {
+        whereClause.notasFiscais = {
+          some: {
+            filialId: input.filialId
+          }
+        };
+      }
+      
+      const limit = input?.limit || 50;
+      const offset = input?.offset || 0;
+      
+      // Buscar clientes com paginação
+      const [clientesRaw, total] = await Promise.all([
+        prisma.cliente.findMany({
+          where: whereClause,
+          orderBy: {
+            nome: 'asc'
+          },
+          take: limit,
+          skip: offset
+        }),
+        prisma.cliente.count({
+          where: whereClause
+        })
+      ]);
+      
+      // Mapear os clientes para o formato GraphQL (converter null para undefined)
+      const clientes = clientesRaw.map(cliente => ({
+        id: cliente.id,
+        nome: cliente.nome,
+        cpfCnpj: cliente.cpfCnpj,
+        cidade: cliente.cidade || undefined,
+        estado: cliente.estado || undefined,
+        logradouro: cliente.logradouro || undefined,
+        numero: cliente.numero || undefined,
+        bairro: cliente.bairro || undefined,
+        cep: cliente.cep || undefined,
+        telefone: cliente.telefone || undefined
+      }));
+      
+      return {
+        clientes,
+        total,
+        limit,
+        offset
+      };
+    } catch (error) {
+      console.error('Erro ao buscar clientes:', error);
+      throw new Error('Erro ao buscar clientes');
+    }
+  }
 
 }

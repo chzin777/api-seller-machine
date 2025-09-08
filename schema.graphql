@@ -22,6 +22,35 @@ type BundleRateItem {
   quantidade: Int!
 }
 
+type Cliente {
+  bairro: String
+  cep: String
+  cidade: String
+  cpfCnpj: String!
+  estado: String
+  id: Int!
+  logradouro: String
+  nome: String!
+  numero: String
+  telefone: String
+}
+
+input ClientesInput {
+  cidade: String
+  estado: String
+  filialId: Int
+  limit: Int! = 50
+  nome: String
+  offset: Int! = 0
+}
+
+type ClientesResponse {
+  clientes: [Cliente!]!
+  limit: Int!
+  offset: Int!
+  total: Int!
+}
+
 input CrmAnaliseInput {
   dataFim: String!
   dataInicio: String!
@@ -185,6 +214,7 @@ input ProdutosSemGiroInput {
 
 type Query {
   bundleRate(input: MixPortfolioInput!): BundleRateAnalise!
+  clientes(input: ClientesInput): ClientesResponse!
   crmInatividade(input: CrmAnaliseInput!): InatividadeAnalise!
   crmNovosRecorrentes(input: CrmAnaliseInput!): NovosRecorrentesAnalise!
   crossSell(input: MixPortfolioInput!): CrossSellAnalise!

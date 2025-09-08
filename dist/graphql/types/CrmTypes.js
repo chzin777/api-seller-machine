@@ -9,8 +9,76 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PrecoRealizadoInput = exports.CrmAnaliseInput = exports.NovosRecorrentesAnalise = exports.NovosRecorrentesResumo = exports.NovosRecorrentesMes = exports.NovosRecorrentesDetalhes = exports.InatividadeAnalise = exports.InatividadeResumo = exports.InatividadePeriodo = void 0;
+exports.PrecoRealizadoInput = exports.ClientesInput = exports.CrmAnaliseInput = exports.NovosRecorrentesAnalise = exports.NovosRecorrentesResumo = exports.NovosRecorrentesMes = exports.NovosRecorrentesDetalhes = exports.InatividadeAnalise = exports.InatividadeResumo = exports.InatividadePeriodo = exports.ClientesResponse = exports.Cliente = void 0;
 const type_graphql_1 = require("type-graphql");
+let Cliente = class Cliente {
+};
+exports.Cliente = Cliente;
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], Cliente.prototype, "id", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String),
+    __metadata("design:type", String)
+], Cliente.prototype, "nome", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String),
+    __metadata("design:type", String)
+], Cliente.prototype, "cpfCnpj", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], Cliente.prototype, "cidade", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], Cliente.prototype, "estado", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], Cliente.prototype, "logradouro", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], Cliente.prototype, "numero", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], Cliente.prototype, "bairro", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], Cliente.prototype, "cep", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], Cliente.prototype, "telefone", void 0);
+exports.Cliente = Cliente = __decorate([
+    (0, type_graphql_1.ObjectType)()
+], Cliente);
+let ClientesResponse = class ClientesResponse {
+};
+exports.ClientesResponse = ClientesResponse;
+__decorate([
+    (0, type_graphql_1.Field)(() => [Cliente]),
+    __metadata("design:type", Array)
+], ClientesResponse.prototype, "clientes", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], ClientesResponse.prototype, "total", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], ClientesResponse.prototype, "limit", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], ClientesResponse.prototype, "offset", void 0);
+exports.ClientesResponse = ClientesResponse = __decorate([
+    (0, type_graphql_1.ObjectType)()
+], ClientesResponse);
 // Tipos para análise de inatividade - declarados em ordem de dependência
 let InatividadePeriodo = class InatividadePeriodo {
 };
@@ -190,6 +258,36 @@ __decorate([
 exports.CrmAnaliseInput = CrmAnaliseInput = __decorate([
     (0, type_graphql_1.InputType)()
 ], CrmAnaliseInput);
+let ClientesInput = class ClientesInput {
+};
+exports.ClientesInput = ClientesInput;
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int, { nullable: true }),
+    __metadata("design:type", Number)
+], ClientesInput.prototype, "filialId", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], ClientesInput.prototype, "nome", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], ClientesInput.prototype, "cidade", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], ClientesInput.prototype, "estado", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int, { defaultValue: 50 }),
+    __metadata("design:type", Number)
+], ClientesInput.prototype, "limit", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int, { defaultValue: 0 }),
+    __metadata("design:type", Number)
+], ClientesInput.prototype, "offset", void 0);
+exports.ClientesInput = ClientesInput = __decorate([
+    (0, type_graphql_1.InputType)()
+], ClientesInput);
 let PrecoRealizadoInput = class PrecoRealizadoInput extends CrmAnaliseInput {
 };
 exports.PrecoRealizadoInput = PrecoRealizadoInput;

@@ -174,10 +174,14 @@ async function main() {
     }
     else {
         // Development: standalone GraphQL server
-        (0, server_1.createGraphQLServer)().catch(error => {
+        try {
+            const { url } = await (0, server_1.createGraphQLServer)();
+            graphqlUrl = url;
+        }
+        catch (error) {
             console.error('Failed to start GraphQL server:', error);
-        });
-        graphqlUrl = 'http://localhost:4000/graphql';
+            graphqlUrl = 'GraphQL server failed to start';
+        }
     }
     // Error handling middlewares (must be last)
     app.use(errorHandler_1.notFoundHandler);

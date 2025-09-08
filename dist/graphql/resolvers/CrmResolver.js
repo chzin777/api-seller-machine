@@ -263,6 +263,73 @@ let CrmResolver = class CrmResolver {
             throw new Error('Erro ao analisar clientes novos vs recorrentes');
         }
     }
+    async clientes(input) {
+        try {
+            const whereClause = {};
+            if (input === null || input === void 0 ? void 0 : input.nome) {
+                whereClause.nome = {
+                    contains: input.nome,
+                    mode: 'insensitive'
+                };
+            }
+            if (input === null || input === void 0 ? void 0 : input.cidade) {
+                whereClause.cidade = {
+                    contains: input.cidade,
+                    mode: 'insensitive'
+                };
+            }
+            if (input === null || input === void 0 ? void 0 : input.estado) {
+                whereClause.estado = input.estado;
+            }
+            // Se filialId for fornecido, filtrar por clientes que fizeram compras nesta filial
+            if (input === null || input === void 0 ? void 0 : input.filialId) {
+                whereClause.notasFiscais = {
+                    some: {
+                        filialId: input.filialId
+                    }
+                };
+            }
+            const limit = (input === null || input === void 0 ? void 0 : input.limit) || 50;
+            const offset = (input === null || input === void 0 ? void 0 : input.offset) || 0;
+            // Buscar clientes com paginação
+            const [clientesRaw, total] = await Promise.all([
+                prisma.cliente.findMany({
+                    where: whereClause,
+                    orderBy: {
+                        nome: 'asc'
+                    },
+                    take: limit,
+                    skip: offset
+                }),
+                prisma.cliente.count({
+                    where: whereClause
+                })
+            ]);
+            // Mapear os clientes para o formato GraphQL (converter null para undefined)
+            const clientes = clientesRaw.map(cliente => ({
+                id: cliente.id,
+                nome: cliente.nome,
+                cpfCnpj: cliente.cpfCnpj,
+                cidade: cliente.cidade || undefined,
+                estado: cliente.estado || undefined,
+                logradouro: cliente.logradouro || undefined,
+                numero: cliente.numero || undefined,
+                bairro: cliente.bairro || undefined,
+                cep: cliente.cep || undefined,
+                telefone: cliente.telefone || undefined
+            }));
+            return {
+                clientes,
+                total,
+                limit,
+                offset
+            };
+        }
+        catch (error) {
+            console.error('Erro ao buscar clientes:', error);
+            throw new Error('Erro ao buscar clientes');
+        }
+    }
 };
 exports.CrmResolver = CrmResolver;
 __decorate([
@@ -279,6 +346,13 @@ __decorate([
     __metadata("design:paramtypes", [CrmTypes_1.CrmAnaliseInput]),
     __metadata("design:returntype", Promise)
 ], CrmResolver.prototype, "crmNovosRecorrentes", null);
+__decorate([
+    (0, type_graphql_1.Query)(() => CrmTypes_1.ClientesResponse),
+    __param(0, (0, type_graphql_1.Arg)('input', { nullable: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [CrmTypes_1.ClientesInput]),
+    __metadata("design:returntype", Promise)
+], CrmResolver.prototype, "clientes", null);
 exports.CrmResolver = CrmResolver = __decorate([
     (0, type_graphql_1.Resolver)()
 ], CrmResolver);
