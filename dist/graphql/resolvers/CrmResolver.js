@@ -268,14 +268,12 @@ let CrmResolver = class CrmResolver {
             const whereClause = {};
             if (input === null || input === void 0 ? void 0 : input.nome) {
                 whereClause.nome = {
-                    contains: input.nome,
-                    mode: 'insensitive'
+                    contains: input.nome
                 };
             }
             if (input === null || input === void 0 ? void 0 : input.cidade) {
                 whereClause.cidade = {
-                    contains: input.cidade,
-                    mode: 'insensitive'
+                    contains: input.cidade
                 };
             }
             if (input === null || input === void 0 ? void 0 : input.estado) {

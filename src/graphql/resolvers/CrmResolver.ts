@@ -303,15 +303,13 @@ export class CrmResolver {
       
       if (input?.nome) {
         whereClause.nome = {
-          contains: input.nome,
-          mode: 'insensitive'
+          contains: input.nome
         };
       }
       
       if (input?.cidade) {
         whereClause.cidade = {
-          contains: input.cidade,
-          mode: 'insensitive'
+          contains: input.cidade
         };
       }
       
