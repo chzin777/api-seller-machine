@@ -161,19 +161,38 @@ async function main() {
     logConfiguration();
     
     const port = process.env.PORT || config.server.port;
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT;
     
-    // Start GraphQL server in parallel
-    createGraphQLServer().catch(error => {
-        console.error('Failed to start GraphQL server:', error);
-    });
+    let graphqlUrl = '';
+    
+    if (isProduction) {
+        // Production: integrate GraphQL with Express
+        await createGraphQLServer(app);
+        graphqlUrl = '/graphql';
+    } else {
+        // Development: standalone GraphQL server
+        createGraphQLServer().catch(error => {
+            console.error('Failed to start GraphQL server:', error);
+        });
+        graphqlUrl = 'http://localhost:4000/graphql';
+    }
     
     // Add GraphQL endpoint info to home route
     app.get('/', (req: Request, res: Response) => {
+        let baseUrl = '';
+        if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+            baseUrl = `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
+        } else if (process.env.RAILWAY_URL) {
+            baseUrl = process.env.RAILWAY_URL;
+        } else {
+            baseUrl = `http://localhost:${port}`;
+        }
+        
         res.json({
             message: 'API is running!',
             endpoints: {
                 rest: '/api',
-                graphql: 'http://localhost:4000/graphql'
+                graphql: isProduction ? `${baseUrl}/graphql` : graphqlUrl
             }
         });
     });
@@ -189,7 +208,12 @@ async function main() {
         }
         console.log(`🌟 REST API Server is running on ${publicUrl}`);
         console.log(`📋 API Documentation: ${publicUrl}${config.api.prefix}`);
-        console.log(`🚀 GraphQL Server: http://localhost:4000/graphql`);
+        
+        if (isProduction) {
+            console.log(`🚀 GraphQL Server: ${publicUrl}/graphql`);
+        } else {
+            console.log(`🚀 GraphQL Server: http://localhost:4000/graphql`);
+        }
     });
 }
 

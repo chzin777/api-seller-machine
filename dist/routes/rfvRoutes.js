@@ -6,6 +6,7 @@ const router = (0, express_1.Router)();
 // Endpoints for RFV Parameters
 router.get('/parameters', rfvController_1.getRfvParameterSets);
 router.post('/parameters', rfvController_1.createRfvParameterSet);
+router.delete('/parameters/:id', rfvController_1.deleteRfvParameterSet);
 // Endpoint to run the RFV analysis
 router.get('/analysis', rfvController_1.calculateRfvScores);
 // Endpoints for RFV Segments

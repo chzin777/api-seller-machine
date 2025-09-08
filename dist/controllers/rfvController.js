@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteRfvSegment = exports.updateRfvSegment = exports.getRfvSegments = exports.createRfvSegment = exports.calculateRfvScores = exports.createRfvParameterSet = exports.getRfvParameterSets = void 0;
+exports.deleteRfvParameterSet = exports.deleteRfvSegment = exports.updateRfvSegment = exports.getRfvSegments = exports.createRfvSegment = exports.calculateRfvScores = exports.createRfvParameterSet = exports.getRfvParameterSets = void 0;
 const index_1 = require("../index");
 const helpers_1 = require("../utils/helpers");
 // --- Helper functions for Scoring ---
@@ -103,7 +103,7 @@ const evaluateCondition = (score, condition) => {
     }
 };
 // GET all RFV parameter sets
-const getRfvParameterSets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getRfvParameterSets = async (req, res) => {
     try {
         const { filialId, active } = req.query;
         const asOfDate = new Date();
@@ -124,7 +124,7 @@ const getRfvParameterSets = (req, res) => __awaiter(void 0, void 0, void 0, func
             ];
             delete where.OR; // Remove OR from root level since it's now in AND
         }
-        const parameterSets = yield index_1.prisma.rfvParameterSet.findMany({
+        const parameterSets = await index_1.prisma.rfvParameterSet.findMany({
             where,
             include: {
                 filial: {
@@ -144,7 +144,7 @@ const getRfvParameterSets = (req, res) => __awaiter(void 0, void 0, void 0, func
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getRfvParameterSets = getRfvParameterSets;
 // CREATE a new RFV parameter set
 const createRfvParameterSet = async (req, res) => {
@@ -338,3 +338,23 @@ const deleteRfvSegment = async (req, res) => {
     }
 };
 exports.deleteRfvSegment = deleteRfvSegment;
+// DELETE an RFV parameter set
+const deleteRfvParameterSet = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const parameterSet = await index_1.prisma.rfvParameterSet.findUnique({
+            where: { id: parseInt(id) }
+        });
+        if (!parameterSet) {
+            return res.status(404).json({ error: 'Parameter set not found' });
+        }
+        await index_1.prisma.rfvParameterSet.delete({
+            where: { id: parseInt(id) }
+        });
+        res.status(200).json({ message: 'Parameter set deleted successfully' });
+    }
+    catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+exports.deleteRfvParameterSet = deleteRfvParameterSet;

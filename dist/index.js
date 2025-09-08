@@ -168,17 +168,37 @@ async function main() {
     // Log configuration
     (0, environment_1.logConfiguration)();
     const port = process.env.PORT || environment_1.config.server.port;
-    // Start GraphQL server in parallel
-    (0, server_1.createGraphQLServer)().catch(error => {
-        console.error('Failed to start GraphQL server:', error);
-    });
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT;
+    let graphqlUrl = '';
+    if (isProduction) {
+        // Production: integrate GraphQL with Express
+        await (0, server_1.createGraphQLServer)(app);
+        graphqlUrl = '/graphql';
+    }
+    else {
+        // Development: standalone GraphQL server
+        (0, server_1.createGraphQLServer)().catch(error => {
+            console.error('Failed to start GraphQL server:', error);
+        });
+        graphqlUrl = 'http://localhost:4000/graphql';
+    }
     // Add GraphQL endpoint info to home route
     app.get('/', (req, res) => {
+        let baseUrl = '';
+        if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+            baseUrl = `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
+        }
+        else if (process.env.RAILWAY_URL) {
+            baseUrl = process.env.RAILWAY_URL;
+        }
+        else {
+            baseUrl = `http://localhost:${port}`;
+        }
         res.json({
             message: 'API is running!',
             endpoints: {
                 rest: '/api',
-                graphql: 'http://localhost:4000/graphql'
+                graphql: isProduction ? `${baseUrl}/graphql` : graphqlUrl
             }
         });
     });
@@ -195,7 +215,12 @@ async function main() {
         }
         console.log(`🌟 REST API Server is running on ${publicUrl}`);
         console.log(`📋 API Documentation: ${publicUrl}${environment_1.config.api.prefix}`);
-        console.log(`🚀 GraphQL Server: http://localhost:4000/graphql`);
+        if (isProduction) {
+            console.log(`🚀 GraphQL Server: ${publicUrl}/graphql`);
+        }
+        else {
+            console.log(`🚀 GraphQL Server: http://localhost:4000/graphql`);
+        }
     });
 }
 main()
