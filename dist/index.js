@@ -161,9 +161,6 @@ app.use('/api/crm', crmRoutes_1.default);
 app.use('/api/mix-portfolio', mixPortfolioRoutes_1.default);
 // Proxy routes
 app.use('/api/proxy', proxyRoutes_1.default);
-// Error handling middlewares (must be last)
-app.use(errorHandler_1.notFoundHandler);
-app.use(errorHandler_1.errorHandler);
 async function main() {
     // Log configuration
     (0, environment_1.logConfiguration)();
@@ -182,6 +179,9 @@ async function main() {
         });
         graphqlUrl = 'http://localhost:4000/graphql';
     }
+    // Error handling middlewares (must be last)
+    app.use(errorHandler_1.notFoundHandler);
+    app.use(errorHandler_1.errorHandler);
     // Add GraphQL endpoint info to home route
     app.get('/', (req, res) => {
         let baseUrl = '';

@@ -150,12 +150,6 @@ app.use('/api/mix-portfolio', mixPortfolioRoutes);
 // Proxy routes
 app.use('/api/proxy', proxyRoutes);
 
-
-// Error handling middlewares (must be last)
-app.use(notFoundHandler);
-app.use(errorHandler);
-
-
 async function main() {
     // Log configuration
     logConfiguration();
@@ -176,6 +170,10 @@ async function main() {
         });
         graphqlUrl = 'http://localhost:4000/graphql';
     }
+    
+    // Error handling middlewares (must be last)
+    app.use(notFoundHandler);
+    app.use(errorHandler);
     
     // Add GraphQL endpoint info to home route
     app.get('/', (req: Request, res: Response) => {
