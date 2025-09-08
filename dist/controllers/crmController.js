@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getPosVendaValor = exports.getPosVendaPercentual = exports.getCohortAnalysis = exports.getConcentracaoReceita = exports.getMetricas12Meses = exports.getIntervaloTempoVida = exports.getClientesNovosRecorrentes = exports.getAnaliseInatividade = void 0;
 const client_1 = require("@prisma/client");
@@ -20,7 +11,7 @@ const prisma = new client_1.PrismaClient();
  * GET /api/crm/inatividade
  * Query params: filialId (opcional)
  */
-const getAnaliseInatividade = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getAnaliseInatividade = async (req, res) => {
     try {
         const { filialId } = req.query;
         const hoje = new Date();
@@ -37,7 +28,7 @@ const getAnaliseInatividade = (req, res) => __awaiter(void 0, void 0, void 0, fu
             if (filialId) {
                 whereClause.filialId = parseInt(filialId);
             }
-            const ultimasCompras = yield prisma.notasFiscalCabecalho.groupBy({
+            const ultimasCompras = await prisma.notasFiscalCabecalho.groupBy({
                 by: ['clienteId'],
                 where: whereClause,
                 _max: {
@@ -51,7 +42,7 @@ const getAnaliseInatividade = (req, res) => __awaiter(void 0, void 0, void 0, fu
                 .map(compra => compra.clienteId)
                 .filter((id) => id !== null);
             // Buscar detalhes dos clientes inativos
-            const detalhesClientes = yield prisma.cliente.findMany({
+            const detalhesClientes = await prisma.cliente.findMany({
                 where: {
                     id: { in: clientesInativos },
                 },
@@ -64,8 +55,11 @@ const getAnaliseInatividade = (req, res) => __awaiter(void 0, void 0, void 0, fu
                 },
             });
             // Calcular valor total perdido (última compra de cada cliente inativo)
-            const valoresUltimasCompras = yield prisma.notasFiscalCabecalho.findMany({
-                where: Object.assign({ clienteId: { in: clientesInativos } }, whereClause),
+            const valoresUltimasCompras = await prisma.notasFiscalCabecalho.findMany({
+                where: {
+                    clienteId: { in: clientesInativos },
+                    ...whereClause
+                },
                 select: {
                     clienteId: true,
                     valorTotal: true,
@@ -102,7 +96,7 @@ const getAnaliseInatividade = (req, res) => __awaiter(void 0, void 0, void 0, fu
         console.error('Erro ao analisar inatividade:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getAnaliseInatividade = getAnaliseInatividade;
 // ========================================
 // NOVOS VS RECORRENTES POR MÊS
@@ -112,7 +106,7 @@ exports.getAnaliseInatividade = getAnaliseInatividade;
  * GET /api/crm/novos-recorrentes
  * Query params: ano, filialId (opcional)
  */
-const getClientesNovosRecorrentes = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getClientesNovosRecorrentes = async (req, res) => {
     try {
         const { ano = new Date().getFullYear(), filialId } = req.query;
         const anoInt = parseInt(ano);
@@ -124,7 +118,7 @@ const getClientesNovosRecorrentes = (req, res) => __awaiter(void 0, void 0, void
             whereClausePrimeiraCompra.filialId = parseInt(filialId);
         }
         // Obter todas as notas fiscais ordenadas por data
-        const todasNotas = yield prisma.notasFiscalCabecalho.findMany({
+        const todasNotas = await prisma.notasFiscalCabecalho.findMany({
             where: whereClausePrimeiraCompra,
             select: {
                 clienteId: true,
@@ -156,7 +150,7 @@ const getClientesNovosRecorrentes = (req, res) => __awaiter(void 0, void 0, void
                 whereClause.filialId = parseInt(filialId);
             }
             // Clientes que compraram no mês
-            const clientesDoMes = yield prisma.notasFiscalCabecalho.findMany({
+            const clientesDoMes = await prisma.notasFiscalCabecalho.findMany({
                 where: whereClause,
                 select: {
                     clienteId: true,
@@ -198,7 +192,7 @@ const getClientesNovosRecorrentes = (req, res) => __awaiter(void 0, void 0, void
         console.error('Erro ao analisar novos vs recorrentes:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getClientesNovosRecorrentes = getClientesNovosRecorrentes;
 // ========================================
 // INTERVALO MÉDIO ENTRE COMPRAS E TEMPO DE VIDA
@@ -208,7 +202,7 @@ exports.getClientesNovosRecorrentes = getClientesNovosRecorrentes;
  * GET /api/crm/intervalo-tempo-vida
  * Query params: clienteId (opcional), filialId (opcional), limit, offset
  */
-const getIntervaloTempoVida = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getIntervaloTempoVida = async (req, res) => {
     var _a, _b, _c;
     try {
         const { clienteId, filialId, limit = '50', offset = '0' } = req.query;
@@ -222,7 +216,7 @@ const getIntervaloTempoVida = (req, res) => __awaiter(void 0, void 0, void 0, fu
             whereClause.filialId = parseInt(filialId);
         }
         // Buscar todas as compras agrupadas por cliente
-        const comprasPorCliente = yield prisma.notasFiscalCabecalho.groupBy({
+        const comprasPorCliente = await prisma.notasFiscalCabecalho.groupBy({
             by: ['clienteId'],
             where: whereClause,
             _count: {
@@ -243,8 +237,11 @@ const getIntervaloTempoVida = (req, res) => __awaiter(void 0, void 0, void 0, fu
             if (!grupo.clienteId)
                 continue;
             // Buscar todas as compras do cliente ordenadas por data
-            const comprasCliente = yield prisma.notasFiscalCabecalho.findMany({
-                where: Object.assign({ clienteId: grupo.clienteId }, (filialId ? { filialId: parseInt(filialId) } : {})),
+            const comprasCliente = await prisma.notasFiscalCabecalho.findMany({
+                where: {
+                    clienteId: grupo.clienteId,
+                    ...(filialId ? { filialId: parseInt(filialId) } : {}),
+                },
                 select: {
                     dataEmissao: true,
                     valorTotal: true,
@@ -255,7 +252,7 @@ const getIntervaloTempoVida = (req, res) => __awaiter(void 0, void 0, void 0, fu
             });
             if (comprasCliente.length < 2) {
                 // Cliente com apenas uma compra
-                const cliente = yield prisma.cliente.findUnique({
+                const cliente = await prisma.cliente.findUnique({
                     where: { id: grupo.clienteId },
                     select: { id: true, nome: true, cpfCnpj: true },
                 });
@@ -282,7 +279,7 @@ const getIntervaloTempoVida = (req, res) => __awaiter(void 0, void 0, void 0, fu
             const ultimaCompra = comprasCliente[comprasCliente.length - 1].dataEmissao;
             const tempoVida = Math.floor((ultimaCompra.getTime() - primeiraCompra.getTime()) / (1000 * 60 * 60 * 24));
             const valorTotal = comprasCliente.reduce((sum, compra) => sum + Number(compra.valorTotal), 0);
-            const cliente = yield prisma.cliente.findUnique({
+            const cliente = await prisma.cliente.findUnique({
                 where: { id: grupo.clienteId },
                 select: { id: true, nome: true, cpfCnpj: true },
             });
@@ -309,7 +306,7 @@ const getIntervaloTempoVida = (req, res) => __awaiter(void 0, void 0, void 0, fu
         console.error('Erro ao calcular intervalo e tempo de vida:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getIntervaloTempoVida = getIntervaloTempoVida;
 // ========================================
 // MÉTRICAS 12 MESES POR CLIENTE
@@ -319,7 +316,7 @@ exports.getIntervaloTempoVida = getIntervaloTempoVida;
  * GET /api/crm/metricas-12m
  * Query params: clienteId (opcional), filialId (opcional), limit, offset
  */
-const getMetricas12Meses = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getMetricas12Meses = async (req, res) => {
     try {
         const { clienteId, filialId, limit = '50', offset = '0' } = req.query;
         const dataInicio = new Date();
@@ -337,7 +334,7 @@ const getMetricas12Meses = (req, res) => __awaiter(void 0, void 0, void 0, funct
             whereClause.filialId = parseInt(filialId);
         }
         // Buscar métricas agrupadas por cliente
-        const metricasPorCliente = yield prisma.notasFiscalCabecalho.groupBy({
+        const metricasPorCliente = await prisma.notasFiscalCabecalho.groupBy({
             by: ['clienteId'],
             where: whereClause,
             _count: {
@@ -360,7 +357,7 @@ const getMetricas12Meses = (req, res) => __awaiter(void 0, void 0, void 0, funct
         for (const metrica of clientesParaAnalise) {
             if (!metrica.clienteId)
                 continue;
-            const cliente = yield prisma.cliente.findUnique({
+            const cliente = await prisma.cliente.findUnique({
                 where: { id: metrica.clienteId },
                 select: { id: true, nome: true, cpfCnpj: true, cidade: true, estado: true },
             });
@@ -397,7 +394,7 @@ const getMetricas12Meses = (req, res) => __awaiter(void 0, void 0, void 0, funct
         console.error('Erro ao calcular métricas 12m:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getMetricas12Meses = getMetricas12Meses;
 // ========================================
 // CONCENTRAÇÃO DE RECEITA (TOP 10%)
@@ -407,7 +404,7 @@ exports.getMetricas12Meses = getMetricas12Meses;
  * GET /api/crm/concentracao-receita
  * Query params: filialId (opcional), periodo (12m, 6m, 3m)
  */
-const getConcentracaoReceita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getConcentracaoReceita = async (req, res) => {
     try {
         const { filialId, periodo = '12m' } = req.query;
         // Definir período de análise
@@ -434,7 +431,7 @@ const getConcentracaoReceita = (req, res) => __awaiter(void 0, void 0, void 0, f
             whereClause.filialId = parseInt(filialId);
         }
         // Buscar receita total por cliente
-        const receitaPorCliente = yield prisma.notasFiscalCabecalho.groupBy({
+        const receitaPorCliente = await prisma.notasFiscalCabecalho.groupBy({
             by: ['clienteId'],
             where: whereClause,
             _sum: {
@@ -467,7 +464,7 @@ const getConcentracaoReceita = (req, res) => __awaiter(void 0, void 0, void 0, f
         const receitaTop10 = top10Clientes.reduce((sum, cliente) => sum + cliente.receita, 0);
         const percentualTop10 = receitaTotal > 0 ? (receitaTop10 / receitaTotal) * 100 : 0;
         // Buscar detalhes dos clientes top 10%
-        const detalhesTop10 = yield prisma.cliente.findMany({
+        const detalhesTop10 = await prisma.cliente.findMany({
             where: {
                 id: { in: top10Clientes.map(c => c.clienteId) },
             },
@@ -481,7 +478,11 @@ const getConcentracaoReceita = (req, res) => __awaiter(void 0, void 0, void 0, f
         });
         const top10ComDetalhes = top10Clientes.map(cliente => {
             const detalhes = detalhesTop10.find(d => d.id === cliente.clienteId);
-            return Object.assign(Object.assign({}, cliente), { cliente: detalhes, participacaoReceita: receitaTotal > 0 ? (cliente.receita / receitaTotal) * 100 : 0 });
+            return {
+                ...cliente,
+                cliente: detalhes,
+                participacaoReceita: receitaTotal > 0 ? (cliente.receita / receitaTotal) * 100 : 0,
+            };
         });
         res.json({
             periodo,
@@ -504,7 +505,7 @@ const getConcentracaoReceita = (req, res) => __awaiter(void 0, void 0, void 0, f
         console.error('Erro ao calcular concentração de receita:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getConcentracaoReceita = getConcentracaoReceita;
 // ========================================
 // COHORT ANALYSIS POR MÊS DE PRIMEIRA COMPRA
@@ -514,7 +515,7 @@ exports.getConcentracaoReceita = getConcentracaoReceita;
  * GET /api/crm/cohort-analysis
  * Query params: filialId (opcional), anoInicio, mesesAnalise (default: 12)
  */
-const getCohortAnalysis = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getCohortAnalysis = async (req, res) => {
     try {
         const { filialId, anoInicio = new Date().getFullYear() - 1, mesesAnalise = '12' } = req.query;
         const anoInicioInt = parseInt(anoInicio);
@@ -526,7 +527,7 @@ const getCohortAnalysis = (req, res) => __awaiter(void 0, void 0, void 0, functi
             whereClause.filialId = parseInt(filialId);
         }
         // OTIMIZAÇÃO: Buscar todas as compras de uma vez e processar em memória
-        const todasCompras = yield prisma.notasFiscalCabecalho.findMany({
+        const todasCompras = await prisma.notasFiscalCabecalho.findMany({
             where: whereClause,
             select: {
                 clienteId: true,
@@ -622,7 +623,7 @@ const getCohortAnalysis = (req, res) => __awaiter(void 0, void 0, void 0, functi
         console.error('Erro ao gerar cohort analysis:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getCohortAnalysis = getCohortAnalysis;
 // ========================================
 // ANÁLISE PÓS-VENDA
@@ -632,7 +633,7 @@ exports.getCohortAnalysis = getCohortAnalysis;
  * GET /api/crm/pos-venda-percentual
  * Query params: filialId (opcional), dataInicio, dataFim
  */
-const getPosVendaPercentual = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getPosVendaPercentual = async (req, res) => {
     try {
         const { filialId, dataInicio, dataFim } = req.query;
         // Definir período de análise
@@ -649,7 +650,7 @@ const getPosVendaPercentual = (req, res) => __awaiter(void 0, void 0, void 0, fu
             whereClause.filialId = parseInt(filialId);
         }
         // Buscar compras de máquinas no período
-        const comprasMaquinas = yield prisma.notasFiscalCabecalho.findMany({
+        const comprasMaquinas = await prisma.notasFiscalCabecalho.findMany({
             where: whereClause,
             include: {
                 itens: {
@@ -674,11 +675,15 @@ const getPosVendaPercentual = (req, res) => __awaiter(void 0, void 0, void 0, fu
                 // Verificar se o cliente comprou serviços/peças nos próximos X dias
                 const dataLimite = new Date(compra.dataEmissao);
                 dataLimite.setDate(dataLimite.getDate() + dias);
-                const comprasPosVenda = yield prisma.notasFiscalCabecalho.findMany({
-                    where: Object.assign({ clienteId: compra.clienteId, dataEmissao: {
+                const comprasPosVenda = await prisma.notasFiscalCabecalho.findMany({
+                    where: {
+                        clienteId: compra.clienteId,
+                        dataEmissao: {
                             gt: compra.dataEmissao,
                             lte: dataLimite,
-                        } }, (filialId ? { filialId: parseInt(filialId) } : {})),
+                        },
+                        ...(filialId ? { filialId: parseInt(filialId) } : {}),
+                    },
                     include: {
                         itens: {
                             include: {
@@ -731,14 +736,14 @@ const getPosVendaPercentual = (req, res) => __awaiter(void 0, void 0, void 0, fu
         console.error('Erro ao analisar pós-venda percentual:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getPosVendaPercentual = getPosVendaPercentual;
 /**
  * Valor detalhado dos serviços/partes vendidos no pós-venda
  * GET /api/crm/pos-venda-valor
  * Query params: filialId (opcional), dataInicio, dataFim, dias (30, 60, 90)
  */
-const getPosVendaValor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getPosVendaValor = async (req, res) => {
     try {
         const { filialId, dataInicio, dataFim, dias = '30' } = req.query;
         const diasInt = parseInt(dias);
@@ -756,7 +761,7 @@ const getPosVendaValor = (req, res) => __awaiter(void 0, void 0, void 0, functio
             whereClause.filialId = parseInt(filialId);
         }
         // Buscar compras de máquinas no período
-        const comprasMaquinas = yield prisma.notasFiscalCabecalho.findMany({
+        const comprasMaquinas = await prisma.notasFiscalCabecalho.findMany({
             where: whereClause,
             include: {
                 cliente: {
@@ -782,11 +787,15 @@ const getPosVendaValor = (req, res) => __awaiter(void 0, void 0, void 0, functio
             // Verificar se o cliente comprou serviços/peças nos próximos X dias
             const dataLimite = new Date(compra.dataEmissao);
             dataLimite.setDate(dataLimite.getDate() + diasInt);
-            const comprasPosVenda = yield prisma.notasFiscalCabecalho.findMany({
-                where: Object.assign({ clienteId: compra.clienteId, dataEmissao: {
+            const comprasPosVenda = await prisma.notasFiscalCabecalho.findMany({
+                where: {
+                    clienteId: compra.clienteId,
+                    dataEmissao: {
                         gt: compra.dataEmissao,
                         lte: dataLimite,
-                    } }, (filialId ? { filialId: parseInt(filialId) } : {})),
+                    },
+                    ...(filialId ? { filialId: parseInt(filialId) } : {}),
+                },
                 include: {
                     itens: {
                         include: {
@@ -885,5 +894,5 @@ const getPosVendaValor = (req, res) => __awaiter(void 0, void 0, void 0, functio
         console.error('Erro ao analisar valor pós-venda:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getPosVendaValor = getPosVendaValor;

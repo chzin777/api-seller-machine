@@ -4,6 +4,8 @@ dotenv.config(); // This line loads the .env file
 
 import express, { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import 'reflect-metadata'; // Required for type-graphql
+import { createGraphQLServer } from './graphql/server';
 
 import cors from 'cors'; // Import cors for CORS configuration
 // Import configuration
@@ -87,10 +89,7 @@ app.use(cors({
 // Global middlewares
 app.use(sanitizeStrings);
 
-// API Home Route
-app.get('/', (req: Request, res: Response) => {
-    res.send('API is running!');
-});
+// API Home Route will be defined in main() function after GraphQL setup
 
 // API Auth Route (login)
 app.use('/api/auth', authRoutes);
@@ -162,6 +161,23 @@ async function main() {
     logConfiguration();
     
     const port = process.env.PORT || config.server.port;
+    
+    // Start GraphQL server in parallel
+    createGraphQLServer().catch(error => {
+        console.error('Failed to start GraphQL server:', error);
+    });
+    
+    // Add GraphQL endpoint info to home route
+    app.get('/', (req: Request, res: Response) => {
+        res.json({
+            message: 'API is running!',
+            endpoints: {
+                rest: '/api',
+                graphql: 'http://localhost:4000/graphql'
+            }
+        });
+    });
+    
     app.listen(port, () => {
         let publicUrl = '';
         if (process.env.RAILWAY_PUBLIC_DOMAIN) {
@@ -171,8 +187,9 @@ async function main() {
         } else {
             publicUrl = `http://localhost:${port}`;
         }
-        console.log(`🌟 Server is running on ${publicUrl}`);
+        console.log(`🌟 REST API Server is running on ${publicUrl}`);
         console.log(`📋 API Documentation: ${publicUrl}${config.api.prefix}`);
+        console.log(`🚀 GraphQL Server: http://localhost:4000/graphql`);
     });
 }
 

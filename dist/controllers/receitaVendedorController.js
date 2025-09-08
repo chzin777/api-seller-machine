@@ -1,17 +1,8 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteReceitaVendedor = exports.updateReceitaVendedor = exports.createReceitaVendedor = exports.getReceitaVendedorById = exports.getAllReceitaVendedor = void 0;
 const index_1 = require("../index");
-const getAllReceitaVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getAllReceitaVendedor = async (req, res) => {
     try {
         const { filialId, vendedorId, tipoPeriodo, dataInicio, dataFim } = req.query;
         const where = {};
@@ -28,7 +19,7 @@ const getAllReceitaVendedor = (req, res) => __awaiter(void 0, void 0, void 0, fu
             if (dataFim)
                 where.data.lte = new Date(dataFim);
         }
-        const receitaVendedor = yield index_1.prisma.receitaVendedor.findMany({
+        const receitaVendedor = await index_1.prisma.receitaVendedor.findMany({
             where,
             include: {
                 filial: true,
@@ -41,12 +32,12 @@ const getAllReceitaVendedor = (req, res) => __awaiter(void 0, void 0, void 0, fu
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getAllReceitaVendedor = getAllReceitaVendedor;
-const getReceitaVendedorById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getReceitaVendedorById = async (req, res) => {
     try {
         const { id } = req.params;
-        const receitaVendedor = yield index_1.prisma.receitaVendedor.findUnique({
+        const receitaVendedor = await index_1.prisma.receitaVendedor.findUnique({
             where: { id: parseInt(id, 10) },
             include: {
                 filial: true,
@@ -61,12 +52,12 @@ const getReceitaVendedorById = (req, res) => __awaiter(void 0, void 0, void 0, f
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getReceitaVendedorById = getReceitaVendedorById;
-const createReceitaVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createReceitaVendedor = async (req, res) => {
     try {
         const { filialId, vendedorId, data, tipoPeriodo, valorTotal, quantidadeNotas, quantidadeItens } = req.body;
-        const receitaVendedor = yield index_1.prisma.receitaVendedor.create({
+        const receitaVendedor = await index_1.prisma.receitaVendedor.create({
             data: {
                 filialId: parseInt(filialId, 10),
                 vendedorId: parseInt(vendedorId, 10),
@@ -82,13 +73,13 @@ const createReceitaVendedor = (req, res) => __awaiter(void 0, void 0, void 0, fu
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.createReceitaVendedor = createReceitaVendedor;
-const updateReceitaVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updateReceitaVendedor = async (req, res) => {
     try {
         const { id } = req.params;
         const { filialId, vendedorId, data, tipoPeriodo, valorTotal, quantidadeNotas, quantidadeItens } = req.body;
-        const receitaVendedor = yield index_1.prisma.receitaVendedor.update({
+        const receitaVendedor = await index_1.prisma.receitaVendedor.update({
             where: { id: parseInt(id, 10) },
             data: {
                 filialId: filialId ? parseInt(filialId, 10) : undefined,
@@ -105,12 +96,12 @@ const updateReceitaVendedor = (req, res) => __awaiter(void 0, void 0, void 0, fu
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.updateReceitaVendedor = updateReceitaVendedor;
-const deleteReceitaVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteReceitaVendedor = async (req, res) => {
     try {
         const { id } = req.params;
-        yield index_1.prisma.receitaVendedor.delete({
+        await index_1.prisma.receitaVendedor.delete({
             where: { id: parseInt(id, 10) }
         });
         res.status(204).send();
@@ -118,5 +109,5 @@ const deleteReceitaVendedor = (req, res) => __awaiter(void 0, void 0, void 0, fu
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.deleteReceitaVendedor = deleteReceitaVendedor;

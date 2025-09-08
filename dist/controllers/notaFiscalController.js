@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getNotasFiscaisResumo = exports.getNotasFiscaisByPeriodo = exports.getNotasFiscaisByVendedor = exports.getNotasFiscaisByCliente = exports.getNotasFiscaisByFilial = exports.deleteNotaFiscal = exports.updateNotaFiscal = exports.createNotaFiscal = exports.getNotaFiscalById = exports.getAllNotasFiscais = void 0;
 const index_1 = require("../index");
@@ -15,9 +6,9 @@ const index_1 = require("../index");
  * Get all notas fiscais
  * GET /api/notas-fiscais
  */
-const getAllNotasFiscais = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getAllNotasFiscais = async (req, res) => {
     try {
-        const notasFiscais = yield index_1.prisma.notasFiscalCabecalho.findMany({
+        const notasFiscais = await index_1.prisma.notasFiscalCabecalho.findMany({
             include: {
                 filial: {
                     select: {
@@ -58,20 +49,20 @@ const getAllNotasFiscais = (req, res) => __awaiter(void 0, void 0, void 0, funct
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getAllNotasFiscais = getAllNotasFiscais;
 /**
  * Get nota fiscal by ID
  * GET /api/notas-fiscais/:id
  */
-const getNotaFiscalById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getNotaFiscalById = async (req, res) => {
     try {
         const { id } = req.params;
         const notaFiscalId = parseInt(id, 10);
         if (isNaN(notaFiscalId)) {
             return res.status(400).json({ error: 'ID deve ser um número válido.' });
         }
-        const notaFiscal = yield index_1.prisma.notasFiscalCabecalho.findUnique({
+        const notaFiscal = await index_1.prisma.notasFiscalCabecalho.findUnique({
             where: { id: notaFiscalId },
             include: {
                 filial: {
@@ -119,13 +110,13 @@ const getNotaFiscalById = (req, res) => __awaiter(void 0, void 0, void 0, functi
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getNotaFiscalById = getNotaFiscalById;
 /**
  * Create new nota fiscal
  * POST /api/notas-fiscais
  */
-const createNotaFiscal = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createNotaFiscal = async (req, res) => {
     try {
         const { numeroNota, dataEmissao, valorTotal, filialId, clienteId, vendedorId } = req.body;
         if (!numeroNota || !dataEmissao || valorTotal === undefined || !filialId) {
@@ -159,7 +150,7 @@ const createNotaFiscal = (req, res) => __awaiter(void 0, void 0, void 0, functio
         if (isNaN(filialIdInt)) {
             return res.status(400).json({ error: 'ID da filial deve ser um número válido.' });
         }
-        const filial = yield index_1.prisma.filial.findUnique({
+        const filial = await index_1.prisma.filial.findUnique({
             where: { id: filialIdInt },
         });
         if (!filial) {
@@ -171,7 +162,7 @@ const createNotaFiscal = (req, res) => __awaiter(void 0, void 0, void 0, functio
             if (isNaN(clienteIdInt)) {
                 return res.status(400).json({ error: 'ID do cliente deve ser um número válido.' });
             }
-            const cliente = yield index_1.prisma.cliente.findUnique({
+            const cliente = await index_1.prisma.cliente.findUnique({
                 where: { id: clienteIdInt },
             });
             if (!cliente) {
@@ -184,14 +175,14 @@ const createNotaFiscal = (req, res) => __awaiter(void 0, void 0, void 0, functio
             if (isNaN(vendedorIdInt)) {
                 return res.status(400).json({ error: 'ID do vendedor deve ser um número válido.' });
             }
-            const vendedor = yield index_1.prisma.vendedor.findUnique({
+            const vendedor = await index_1.prisma.vendedor.findUnique({
                 where: { id: vendedorIdInt },
             });
             if (!vendedor) {
                 return res.status(404).json({ error: 'Vendedor não encontrado.' });
             }
         }
-        const newNotaFiscal = yield index_1.prisma.notasFiscalCabecalho.create({
+        const newNotaFiscal = await index_1.prisma.notasFiscalCabecalho.create({
             data: {
                 numeroNota: numeroNotaInt,
                 dataEmissao: dataEmissaoDate,
@@ -233,13 +224,13 @@ const createNotaFiscal = (req, res) => __awaiter(void 0, void 0, void 0, functio
         }
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.createNotaFiscal = createNotaFiscal;
 /**
  * Update nota fiscal
  * PUT /api/notas-fiscais/:id
  */
-const updateNotaFiscal = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updateNotaFiscal = async (req, res) => {
     try {
         const { id } = req.params;
         const { numeroNota, dataEmissao, valorTotal, filialId, clienteId, vendedorId } = req.body;
@@ -281,7 +272,7 @@ const updateNotaFiscal = (req, res) => __awaiter(void 0, void 0, void 0, functio
             if (isNaN(filialIdInt)) {
                 return res.status(400).json({ error: 'ID da filial deve ser um número válido.' });
             }
-            const filial = yield index_1.prisma.filial.findUnique({
+            const filial = await index_1.prisma.filial.findUnique({
                 where: { id: filialIdInt },
             });
             if (!filial) {
@@ -295,7 +286,7 @@ const updateNotaFiscal = (req, res) => __awaiter(void 0, void 0, void 0, functio
                 if (isNaN(clienteIdInt)) {
                     return res.status(400).json({ error: 'ID do cliente deve ser um número válido.' });
                 }
-                const cliente = yield index_1.prisma.cliente.findUnique({
+                const cliente = await index_1.prisma.cliente.findUnique({
                     where: { id: clienteIdInt },
                 });
                 if (!cliente) {
@@ -313,7 +304,7 @@ const updateNotaFiscal = (req, res) => __awaiter(void 0, void 0, void 0, functio
                 if (isNaN(vendedorIdInt)) {
                     return res.status(400).json({ error: 'ID do vendedor deve ser um número válido.' });
                 }
-                const vendedor = yield index_1.prisma.vendedor.findUnique({
+                const vendedor = await index_1.prisma.vendedor.findUnique({
                     where: { id: vendedorIdInt },
                 });
                 if (!vendedor) {
@@ -325,7 +316,7 @@ const updateNotaFiscal = (req, res) => __awaiter(void 0, void 0, void 0, functio
                 updateData.vendedorId = null;
             }
         }
-        const updatedNotaFiscal = yield index_1.prisma.notasFiscalCabecalho.update({
+        const updatedNotaFiscal = await index_1.prisma.notasFiscalCabecalho.update({
             where: { id: notaFiscalId },
             data: updateData,
             include: {
@@ -364,20 +355,20 @@ const updateNotaFiscal = (req, res) => __awaiter(void 0, void 0, void 0, functio
         }
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.updateNotaFiscal = updateNotaFiscal;
 /**
  * Delete nota fiscal
  * DELETE /api/notas-fiscais/:id
  */
-const deleteNotaFiscal = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteNotaFiscal = async (req, res) => {
     try {
         const { id } = req.params;
         const notaFiscalId = parseInt(id, 10);
         if (isNaN(notaFiscalId)) {
             return res.status(400).json({ error: 'ID deve ser um número válido.' });
         }
-        yield index_1.prisma.notasFiscalCabecalho.delete({
+        await index_1.prisma.notasFiscalCabecalho.delete({
             where: { id: notaFiscalId },
         });
         res.status(200).json({ message: 'Nota fiscal removida com sucesso.' });
@@ -393,20 +384,20 @@ const deleteNotaFiscal = (req, res) => __awaiter(void 0, void 0, void 0, functio
         }
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.deleteNotaFiscal = deleteNotaFiscal;
 /**
  * Get notas fiscais by filial
  * GET /api/notas-fiscais/filial/:filialId
  */
-const getNotasFiscaisByFilial = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getNotasFiscaisByFilial = async (req, res) => {
     try {
         const { filialId } = req.params;
         const filialIdInt = parseInt(filialId, 10);
         if (isNaN(filialIdInt)) {
             return res.status(400).json({ error: 'ID da filial deve ser um número válido.' });
         }
-        const notasFiscais = yield index_1.prisma.notasFiscalCabecalho.findMany({
+        const notasFiscais = await index_1.prisma.notasFiscalCabecalho.findMany({
             where: { filialId: filialIdInt },
             include: {
                 cliente: {
@@ -433,20 +424,20 @@ const getNotasFiscaisByFilial = (req, res) => __awaiter(void 0, void 0, void 0, 
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getNotasFiscaisByFilial = getNotasFiscaisByFilial;
 /**
  * Get notas fiscais by cliente
  * GET /api/notas-fiscais/cliente/:clienteId
  */
-const getNotasFiscaisByCliente = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getNotasFiscaisByCliente = async (req, res) => {
     try {
         const { clienteId } = req.params;
         const clienteIdInt = parseInt(clienteId, 10);
         if (isNaN(clienteIdInt)) {
             return res.status(400).json({ error: 'ID do cliente deve ser um número válido.' });
         }
-        const notasFiscais = yield index_1.prisma.notasFiscalCabecalho.findMany({
+        const notasFiscais = await index_1.prisma.notasFiscalCabecalho.findMany({
             where: { clienteId: clienteIdInt },
             include: {
                 filial: {
@@ -471,20 +462,20 @@ const getNotasFiscaisByCliente = (req, res) => __awaiter(void 0, void 0, void 0,
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getNotasFiscaisByCliente = getNotasFiscaisByCliente;
 /**
  * Get notas fiscais by vendedor
  * GET /api/notas-fiscais/vendedor/:vendedorId
  */
-const getNotasFiscaisByVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getNotasFiscaisByVendedor = async (req, res) => {
     try {
         const { vendedorId } = req.params;
         const vendedorIdInt = parseInt(vendedorId, 10);
         if (isNaN(vendedorIdInt)) {
             return res.status(400).json({ error: 'ID do vendedor deve ser um número válido.' });
         }
-        const notasFiscais = yield index_1.prisma.notasFiscalCabecalho.findMany({
+        const notasFiscais = await index_1.prisma.notasFiscalCabecalho.findMany({
             where: { vendedorId: vendedorIdInt },
             include: {
                 filial: {
@@ -509,13 +500,13 @@ const getNotasFiscaisByVendedor = (req, res) => __awaiter(void 0, void 0, void 0
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getNotasFiscaisByVendedor = getNotasFiscaisByVendedor;
 /**
  * Get notas fiscais by period
  * GET /api/notas-fiscais/periodo?inicio=2024-01-01&fim=2024-12-31
  */
-const getNotasFiscaisByPeriodo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getNotasFiscaisByPeriodo = async (req, res) => {
     try {
         const { inicio, fim } = req.query;
         if (!inicio || !fim) {
@@ -529,7 +520,7 @@ const getNotasFiscaisByPeriodo = (req, res) => __awaiter(void 0, void 0, void 0,
         if (dataInicio > dataFim) {
             return res.status(400).json({ error: 'Data de início deve ser menor que a data fim.' });
         }
-        const notasFiscais = yield index_1.prisma.notasFiscalCabecalho.findMany({
+        const notasFiscais = await index_1.prisma.notasFiscalCabecalho.findMany({
             where: {
                 dataEmissao: {
                     gte: dataInicio,
@@ -565,30 +556,30 @@ const getNotasFiscaisByPeriodo = (req, res) => __awaiter(void 0, void 0, void 0,
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getNotasFiscaisByPeriodo = getNotasFiscaisByPeriodo;
 /**
  * Get resumo de notas fiscais
  * GET /api/notas-fiscais/resumo
  */
-const getNotasFiscaisResumo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getNotasFiscaisResumo = async (req, res) => {
     try {
         // Total de notas fiscais
-        const totalNotasFiscais = yield index_1.prisma.notasFiscalCabecalho.count();
+        const totalNotasFiscais = await index_1.prisma.notasFiscalCabecalho.count();
         // Valor total geral
-        const valorTotalGeral = yield index_1.prisma.notasFiscalCabecalho.aggregate({
+        const valorTotalGeral = await index_1.prisma.notasFiscalCabecalho.aggregate({
             _sum: {
                 valorTotal: true,
             },
         });
         // Valor médio das notas
-        const valorMedio = yield index_1.prisma.notasFiscalCabecalho.aggregate({
+        const valorMedio = await index_1.prisma.notasFiscalCabecalho.aggregate({
             _avg: {
                 valorTotal: true,
             },
         });
         // Notas por filial
-        const notasPorFilial = yield index_1.prisma.notasFiscalCabecalho.groupBy({
+        const notasPorFilial = await index_1.prisma.notasFiscalCabecalho.groupBy({
             by: ['filialId'],
             _count: {
                 id: true,
@@ -599,7 +590,7 @@ const getNotasFiscaisResumo = (req, res) => __awaiter(void 0, void 0, void 0, fu
         });
         // Buscar nomes das filiais
         const filiaisIds = notasPorFilial.map(item => item.filialId).filter((id) => id !== null);
-        const filiais = yield index_1.prisma.filial.findMany({
+        const filiais = await index_1.prisma.filial.findMany({
             where: { id: { in: filiaisIds } },
             select: { id: true, nome: true }
         });
@@ -621,5 +612,5 @@ const getNotasFiscaisResumo = (req, res) => __awaiter(void 0, void 0, void 0, fu
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getNotasFiscaisResumo = getNotasFiscaisResumo;

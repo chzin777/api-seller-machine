@@ -1,3 +1,6 @@
+import { Request, Response } from 'express';
+import { prisma } from '../index';
+
 /**
  * POST /api/associacoes/recalcular
  * Recalcula as associações de produtos a partir dos itens de vendas finalizadas.
@@ -19,11 +22,11 @@ export const recalcularAssociacoes = async (req: Request, res: Response) => {
       return res.status(500).json({ error: 'Erro ao buscar itens de notas fiscais.' });
     }
     const itens = await response.json();
-    console.log(`Total de itens de vendas recebidos (otimizado): ${itens.length}`);
+    console.log(`Total de itens de vendas recebidos (otimizado): ${(itens as any[]).length}`);
 
     // 3. Agrupa por cliente (ou nota se não houver cliente)
     const vendas: Record<string, any[]> = {};
-    for (const item of itens) {
+    for (const item of (itens as any[])) {
       // Usar apenas os campos essenciais
       const clienteId = item.notaFiscal?.cliente?.id || `nota_${item.notaFiscal?.id}`;
       if (!vendas[clienteId]) vendas[clienteId] = [];
@@ -70,7 +73,7 @@ export const recalcularAssociacoes = async (req: Request, res: Response) => {
 
     // 5. Busca nomes e tipos dos produtos
     const produtosDb = await prisma.produto.findMany();
-    const produtosMap = Object.fromEntries(produtosDb.map(p => [p.id, p]));
+    const produtosMap = Object.fromEntries(produtosDb.map((p: any) => [p.id, p]));
 
     // 6. Calcula confiança, lift, vendas_produto_a, vendas_produto_b e prepara para bulk insert
     let count = 0;
@@ -114,8 +117,6 @@ export const recalcularAssociacoes = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Erro ao recalcular associações.' });
   }
 };
-import { Request, Response } from 'express';
-import { prisma } from '../index';
 
 /**
  * GET /api/associacoes

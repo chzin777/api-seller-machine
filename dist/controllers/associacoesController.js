@@ -1,36 +1,28 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAssociacoes = exports.recalcularAssociacoes = void 0;
+const index_1 = require("../index");
 /**
  * POST /api/associacoes/recalcular
  * Recalcula as associações de produtos a partir dos itens de vendas finalizadas.
  */
-const recalcularAssociacoes = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const recalcularAssociacoes = async (req, res) => {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
     try {
         console.time('recalcularAssociacoes');
         console.log('Iniciando limpeza da tabela de associações...');
-        yield index_1.prisma.associacaoProduto.deleteMany();
+        await index_1.prisma.associacaoProduto.deleteMany();
         console.log('Tabela de associações limpa.');
         // Teste curl para notas-fiscais-itens
         const baseUrl = process.env.API_BASE_URL || 'http://localhost:3000';
         console.log('Fazendo fetch para', `${baseUrl}/api/notas-fiscais-itens`);
         // Buscar apenas os campos essenciais para associação
-        const response = yield fetch(`${baseUrl}/api/notas-fiscais-itens?fields=id,notaFiscalId,produtoId,notaFiscal.cliente.id,notaFiscal.id,produto.id`);
+        const response = await fetch(`${baseUrl}/api/notas-fiscais-itens?fields=id,notaFiscalId,produtoId,notaFiscal.cliente.id,notaFiscal.id,produto.id`);
         if (!response.ok) {
             console.error('Erro ao buscar itens de notas fiscais:', response.statusText);
             return res.status(500).json({ error: 'Erro ao buscar itens de notas fiscais.' });
         }
-        const itens = yield response.json();
+        const itens = await response.json();
         console.log(`Total de itens de vendas recebidos (otimizado): ${itens.length}`);
         // 3. Agrupa por cliente (ou nota se não houver cliente)
         const vendas = {};
@@ -79,8 +71,8 @@ const recalcularAssociacoes = (req, res) => __awaiter(void 0, void 0, void 0, fu
         }
         console.log(`Total de pares de produtos: ${Object.keys(pares).length}`);
         // 5. Busca nomes e tipos dos produtos
-        const produtosDb = yield index_1.prisma.produto.findMany();
-        const produtosMap = Object.fromEntries(produtosDb.map(p => [p.id, p]));
+        const produtosDb = await index_1.prisma.produto.findMany();
+        const produtosMap = Object.fromEntries(produtosDb.map((p) => [p.id, p]));
         // 6. Calcula confiança, lift, vendas_produto_a, vendas_produto_b e prepara para bulk insert
         let count = 0;
         const associacoesBulk = [];
@@ -112,7 +104,7 @@ const recalcularAssociacoes = (req, res) => __awaiter(void 0, void 0, void 0, fu
         const batchSize = 500;
         for (let i = 0; i < associacoesBulk.length; i += batchSize) {
             const batch = associacoesBulk.slice(i, i + batchSize);
-            yield index_1.prisma.associacaoProduto.createMany({ data: batch });
+            await index_1.prisma.associacaoProduto.createMany({ data: batch });
             console.log(`Inseridos ${Math.min(i + batchSize, associacoesBulk.length)} de ${associacoesBulk.length}`);
         }
         console.timeEnd('recalcularAssociacoes');
@@ -122,14 +114,13 @@ const recalcularAssociacoes = (req, res) => __awaiter(void 0, void 0, void 0, fu
         console.error(error);
         res.status(500).json({ error: 'Erro ao recalcular associações.' });
     }
-});
+};
 exports.recalcularAssociacoes = recalcularAssociacoes;
-const index_1 = require("../index");
 /**
  * GET /api/associacoes
  * Lista associações de produtos já calculadas, com filtros opcionais e paginação.
  */
-const getAssociacoes = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getAssociacoes = async (req, res) => {
     try {
         // DEBUG: logar as chaves do prisma para descobrir o nome correto do model
         if (process.env.NODE_ENV !== 'production') {
@@ -155,7 +146,7 @@ const getAssociacoes = (req, res) => __awaiter(void 0, void 0, void 0, function*
         const skip = (Number(page) - 1) * Number(pageSize);
         const take = Number(pageSize);
         // Consulta paginada com join para pegar todos os campos
-        const [total, associacoes] = yield Promise.all([
+        const [total, associacoes] = await Promise.all([
             index_1.prisma.associacaoProduto.count({ where }),
             index_1.prisma.associacaoProduto.findMany({
                 where,
@@ -184,5 +175,5 @@ const getAssociacoes = (req, res) => __awaiter(void 0, void 0, void 0, function*
         console.error(error);
         res.status(500).json({ error: 'Erro ao buscar associações de produtos.' });
     }
-});
+};
 exports.getAssociacoes = getAssociacoes;

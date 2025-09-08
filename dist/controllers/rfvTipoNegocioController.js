@@ -1,20 +1,11 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getRankingConfigurations = exports.recalcularRFVCliente = exports.deleteRFVTipoNegocio = exports.updateRFVTipoNegocio = exports.createRFVTipoNegocio = exports.getEstatisticasSegmentosRFV = exports.getRFVTipoNegocioByCliente = exports.getRFVTipoNegocioById = exports.getRFVTipoNegocio = void 0;
 const client_1 = require("@prisma/client");
 const helpers_1 = require("../utils/helpers");
 const prisma = new client_1.PrismaClient();
 // Buscar todas as análises RFV por tipo de negócio
-const getRFVTipoNegocio = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getRFVTipoNegocio = async (req, res) => {
     try {
         const { clienteId, tipoNegocio, segmentoRFV, dataInicio, dataFim, periodoAnalise, page = '1', limit = '50' } = req.query;
         const whereClause = {};
@@ -49,7 +40,7 @@ const getRFVTipoNegocio = (req, res) => __awaiter(void 0, void 0, void 0, functi
         const pageNumber = parseInt(page);
         const limitNumber = parseInt(limit);
         const skip = (pageNumber - 1) * limitNumber;
-        const [analises, total] = yield Promise.all([
+        const [analises, total] = await Promise.all([
             prisma.rFVTipoNegocio.findMany({
                 where: whereClause,
                 include: {
@@ -86,13 +77,13 @@ const getRFVTipoNegocio = (req, res) => __awaiter(void 0, void 0, void 0, functi
         console.error('Erro ao buscar análises RFV por tipo de negócio:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getRFVTipoNegocio = getRFVTipoNegocio;
 // Buscar análise RFV por ID
-const getRFVTipoNegocioById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getRFVTipoNegocioById = async (req, res) => {
     try {
         const { id } = req.params;
-        const analise = yield prisma.rFVTipoNegocio.findUnique({
+        const analise = await prisma.rFVTipoNegocio.findUnique({
             where: {
                 id: parseInt(id)
             },
@@ -117,10 +108,10 @@ const getRFVTipoNegocioById = (req, res) => __awaiter(void 0, void 0, void 0, fu
         console.error('Erro ao buscar análise RFV:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getRFVTipoNegocioById = getRFVTipoNegocioById;
 // Buscar análises RFV por cliente
-const getRFVTipoNegocioByCliente = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getRFVTipoNegocioByCliente = async (req, res) => {
     try {
         const { clienteId } = req.params;
         const { tipoNegocio, dataInicio, dataFim } = req.query;
@@ -136,7 +127,7 @@ const getRFVTipoNegocioByCliente = (req, res) => __awaiter(void 0, void 0, void 
                 lte: new Date(dataFim)
             };
         }
-        const analises = yield prisma.rFVTipoNegocio.findMany({
+        const analises = await prisma.rFVTipoNegocio.findMany({
             where: whereClause,
             include: {
                 cliente: {
@@ -158,10 +149,10 @@ const getRFVTipoNegocioByCliente = (req, res) => __awaiter(void 0, void 0, void 
         console.error('Erro ao buscar análises RFV por cliente:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getRFVTipoNegocioByCliente = getRFVTipoNegocioByCliente;
 // Buscar estatísticas de segmentos RFV
-const getEstatisticasSegmentosRFV = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getEstatisticasSegmentosRFV = async (req, res) => {
     try {
         const { tipoNegocio, dataInicio, dataFim } = req.query;
         const whereClause = {};
@@ -174,7 +165,7 @@ const getEstatisticasSegmentosRFV = (req, res) => __awaiter(void 0, void 0, void
                 lte: new Date(dataFim)
             };
         }
-        const estatisticas = yield prisma.rFVTipoNegocio.groupBy({
+        const estatisticas = await prisma.rFVTipoNegocio.groupBy({
             by: ['segmentoRFV', 'tipoNegocio'],
             where: whereClause,
             _count: {
@@ -199,15 +190,15 @@ const getEstatisticasSegmentosRFV = (req, res) => __awaiter(void 0, void 0, void
         console.error('Erro ao buscar estatísticas de segmentos RFV:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getEstatisticasSegmentosRFV = getEstatisticasSegmentosRFV;
 // Criar nova análise RFV
-const createRFVTipoNegocio = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createRFVTipoNegocio = async (req, res) => {
     try {
         const { clienteId, tipoNegocio, dataAnalise, periodoAnalise, recencia, frequencia, valorMonetario, scoreRecencia, scoreFrequencia, scoreValor, scoreRFV, segmentoRFV } = req.body;
         // Calcular ranking automático baseado nos scores
         const rankingAutomatico = (0, helpers_1.determineAutomaticRanking)(scoreRecencia, scoreFrequencia, scoreValor);
-        const novaAnalise = yield prisma.rFVTipoNegocio.create({
+        const novaAnalise = await prisma.rFVTipoNegocio.create({
             data: {
                 clienteId,
                 tipoNegocio,
@@ -239,10 +230,10 @@ const createRFVTipoNegocio = (req, res) => __awaiter(void 0, void 0, void 0, fun
         console.error('Erro ao criar análise RFV:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.createRFVTipoNegocio = createRFVTipoNegocio;
 // Atualizar análise RFV
-const updateRFVTipoNegocio = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updateRFVTipoNegocio = async (req, res) => {
     try {
         const { id } = req.params;
         const { clienteId, tipoNegocio, dataAnalise, periodoAnalise, recencia, frequencia, valorMonetario, scoreRecencia, scoreFrequencia, scoreValor, scoreRFV, segmentoRFV } = req.body;
@@ -250,12 +241,15 @@ const updateRFVTipoNegocio = (req, res) => __awaiter(void 0, void 0, void 0, fun
         const rankingAutomatico = (scoreRecencia && scoreFrequencia && scoreValor)
             ? (0, helpers_1.determineAutomaticRanking)(scoreRecencia, scoreFrequencia, scoreValor)
             : undefined;
-        const analiseAtualizada = yield prisma.rFVTipoNegocio.update({
+        const analiseAtualizada = await prisma.rFVTipoNegocio.update({
             where: {
                 id: parseInt(id)
             },
-            data: Object.assign({ clienteId,
-                tipoNegocio, dataAnalise: dataAnalise ? new Date(dataAnalise) : undefined, periodoAnalise,
+            data: {
+                clienteId,
+                tipoNegocio,
+                dataAnalise: dataAnalise ? new Date(dataAnalise) : undefined,
+                periodoAnalise,
                 recencia,
                 frequencia,
                 valorMonetario,
@@ -263,7 +257,9 @@ const updateRFVTipoNegocio = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 scoreFrequencia,
                 scoreValor,
                 scoreRFV,
-                segmentoRFV }, (rankingAutomatico && { rankingAutomatico })),
+                segmentoRFV,
+                ...(rankingAutomatico && { rankingAutomatico })
+            },
             include: {
                 cliente: {
                     select: {
@@ -283,13 +279,13 @@ const updateRFVTipoNegocio = (req, res) => __awaiter(void 0, void 0, void 0, fun
         }
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.updateRFVTipoNegocio = updateRFVTipoNegocio;
 // Deletar análise RFV
-const deleteRFVTipoNegocio = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteRFVTipoNegocio = async (req, res) => {
     try {
         const { id } = req.params;
-        yield prisma.rFVTipoNegocio.delete({
+        await prisma.rFVTipoNegocio.delete({
             where: {
                 id: parseInt(id)
             }
@@ -303,10 +299,10 @@ const deleteRFVTipoNegocio = (req, res) => __awaiter(void 0, void 0, void 0, fun
         }
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.deleteRFVTipoNegocio = deleteRFVTipoNegocio;
 // Recalcular scores RFV para um cliente específico
-const recalcularRFVCliente = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const recalcularRFVCliente = async (req, res) => {
     try {
         const { clienteId } = req.params;
         const { tipoNegocio, periodoAnalise } = req.body;
@@ -323,10 +319,10 @@ const recalcularRFVCliente = (req, res) => __awaiter(void 0, void 0, void 0, fun
         console.error('Erro ao recalcular RFV:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.recalcularRFVCliente = recalcularRFVCliente;
 // Obter configurações de ranking automático
-const getRankingConfigurations = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getRankingConfigurations = async (req, res) => {
     try {
         res.json({
             message: 'Configurações de ranking automático',
@@ -349,5 +345,5 @@ const getRankingConfigurations = (req, res) => __awaiter(void 0, void 0, void 0,
         console.error('Erro ao buscar configurações de ranking:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getRankingConfigurations = getRankingConfigurations;

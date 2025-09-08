@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteReceitaPeriodo = exports.updateReceitaPeriodo = exports.createReceitaPeriodo = exports.getReceitaPeriodoById = exports.getAllReceitasPeriodo = void 0;
 const index_1 = require("../index");
@@ -15,7 +6,7 @@ const index_1 = require("../index");
  * Obtém todas as receitas por período
  * GET /api/receitas-periodo
  */
-const getAllReceitasPeriodo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getAllReceitasPeriodo = async (req, res) => {
     try {
         const { filialId, tipoPeriodo, dataInicio, dataFim } = req.query;
         const where = {};
@@ -34,7 +25,7 @@ const getAllReceitasPeriodo = (req, res) => __awaiter(void 0, void 0, void 0, fu
                 where.data.lte = new Date(dataFim);
             }
         }
-        const receitasPeriodo = yield index_1.prisma.receitaPeriodo.findMany({
+        const receitasPeriodo = await index_1.prisma.receitaPeriodo.findMany({
             where,
             include: {
                 filial: true
@@ -48,16 +39,16 @@ const getAllReceitasPeriodo = (req, res) => __awaiter(void 0, void 0, void 0, fu
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getAllReceitasPeriodo = getAllReceitasPeriodo;
 /**
  * Obtém uma receita por período específica
  * GET /api/receitas-periodo/:id
  */
-const getReceitaPeriodoById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getReceitaPeriodoById = async (req, res) => {
     try {
         const { id } = req.params;
-        const receitaPeriodo = yield index_1.prisma.receitaPeriodo.findUnique({
+        const receitaPeriodo = await index_1.prisma.receitaPeriodo.findUnique({
             where: {
                 id: parseInt(id, 10)
             },
@@ -73,16 +64,16 @@ const getReceitaPeriodoById = (req, res) => __awaiter(void 0, void 0, void 0, fu
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getReceitaPeriodoById = getReceitaPeriodoById;
 /**
  * Cria uma nova receita por período
  * POST /api/receitas-periodo
  */
-const createReceitaPeriodo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createReceitaPeriodo = async (req, res) => {
     try {
         const { filialId, data, tipoPeriodo, valorTotal, quantidadeNotas, quantidadeItens } = req.body;
-        const receitaPeriodo = yield index_1.prisma.receitaPeriodo.create({
+        const receitaPeriodo = await index_1.prisma.receitaPeriodo.create({
             data: {
                 filialId: filialId ? parseInt(filialId, 10) : undefined,
                 data: new Date(data),
@@ -97,17 +88,17 @@ const createReceitaPeriodo = (req, res) => __awaiter(void 0, void 0, void 0, fun
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.createReceitaPeriodo = createReceitaPeriodo;
 /**
  * Atualiza uma receita por período existente
  * PUT /api/receitas-periodo/:id
  */
-const updateReceitaPeriodo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updateReceitaPeriodo = async (req, res) => {
     try {
         const { id } = req.params;
         const { filialId, data, tipoPeriodo, valorTotal, quantidadeNotas, quantidadeItens } = req.body;
-        const receitaPeriodo = yield index_1.prisma.receitaPeriodo.update({
+        const receitaPeriodo = await index_1.prisma.receitaPeriodo.update({
             where: {
                 id: parseInt(id, 10)
             },
@@ -125,16 +116,16 @@ const updateReceitaPeriodo = (req, res) => __awaiter(void 0, void 0, void 0, fun
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.updateReceitaPeriodo = updateReceitaPeriodo;
 /**
  * Remove uma receita por período
  * DELETE /api/receitas-periodo/:id
  */
-const deleteReceitaPeriodo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteReceitaPeriodo = async (req, res) => {
     try {
         const { id } = req.params;
-        yield index_1.prisma.receitaPeriodo.delete({
+        await index_1.prisma.receitaPeriodo.delete({
             where: {
                 id: parseInt(id, 10)
             }
@@ -144,5 +135,5 @@ const deleteReceitaPeriodo = (req, res) => __awaiter(void 0, void 0, void 0, fun
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.deleteReceitaPeriodo = deleteReceitaPeriodo;

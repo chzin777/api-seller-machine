@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -16,7 +7,7 @@ const express_1 = require("express");
 const axios_1 = __importDefault(require("axios"));
 const router = (0, express_1.Router)();
 // Proxy route to forward requests to local API
-router.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/', async (req, res) => {
     try {
         const { url } = req.query;
         if (!url || typeof url !== 'string') {
@@ -30,7 +21,7 @@ router.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             : `http://localhost:${process.env.PORT || 3000}`;
         const apiUrl = `${baseUrl}${url}`;
         // Forward the request to the API
-        const response = yield axios_1.default.get(apiUrl, {
+        const response = await axios_1.default.get(apiUrl, {
             params: req.query,
             headers: {
                 'Content-Type': 'application/json',
@@ -53,5 +44,5 @@ router.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             });
         }
     }
-}));
+});
 exports.default = router;

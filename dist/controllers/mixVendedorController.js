@@ -1,19 +1,10 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteMixVendedor = exports.updateMixVendedor = exports.createMixVendedor = exports.getMixVendedorById = exports.getAllMixVendedor = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 // GET /api/mix-vendedor
-const getAllMixVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getAllMixVendedor = async (req, res) => {
     try {
         const { filialId, vendedorId, tipoPeriodo, dataInicio, dataFim } = req.query;
         const where = {};
@@ -42,7 +33,7 @@ const getAllMixVendedor = (req, res) => __awaiter(void 0, void 0, void 0, functi
                 lte: new Date(dataFim)
             };
         }
-        const mixVendedores = yield prisma.mixVendedor.findMany({
+        const mixVendedores = await prisma.mixVendedor.findMany({
             where,
             include: {
                 filial: {
@@ -69,13 +60,13 @@ const getAllMixVendedor = (req, res) => __awaiter(void 0, void 0, void 0, functi
         console.error('Erro ao buscar mix de vendedores:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getAllMixVendedor = getAllMixVendedor;
 // GET /api/mix-vendedor/:id
-const getMixVendedorById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getMixVendedorById = async (req, res) => {
     try {
         const { id } = req.params;
-        const mixVendedor = yield prisma.mixVendedor.findUnique({
+        const mixVendedor = await prisma.mixVendedor.findUnique({
             where: {
                 id: parseInt(id)
             },
@@ -104,13 +95,13 @@ const getMixVendedorById = (req, res) => __awaiter(void 0, void 0, void 0, funct
         console.error('Erro ao buscar mix de vendedor:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getMixVendedorById = getMixVendedorById;
 // POST /api/mix-vendedor
-const createMixVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createMixVendedor = async (req, res) => {
     try {
         const { filialId, vendedorId, data, tipoPeriodo, receitaMaquinas, receitaPecas, receitaServicos, percentualMaquinas, percentualPecas, percentualServicos, quantidadeNotasMaquinas, quantidadeNotasPecas, quantidadeNotasServicos } = req.body;
-        const mixVendedor = yield prisma.mixVendedor.create({
+        const mixVendedor = await prisma.mixVendedor.create({
             data: {
                 filialId: filialId ? parseInt(filialId) : null,
                 vendedorId: parseInt(vendedorId),
@@ -148,14 +139,14 @@ const createMixVendedor = (req, res) => __awaiter(void 0, void 0, void 0, functi
         console.error('Erro ao criar mix de vendedor:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.createMixVendedor = createMixVendedor;
 // PUT /api/mix-vendedor/:id
-const updateMixVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updateMixVendedor = async (req, res) => {
     try {
         const { id } = req.params;
         const { filialId, vendedorId, data, tipoPeriodo, receitaMaquinas, receitaPecas, receitaServicos, percentualMaquinas, percentualPecas, percentualServicos, quantidadeNotasMaquinas, quantidadeNotasPecas, quantidadeNotasServicos } = req.body;
-        const mixVendedor = yield prisma.mixVendedor.update({
+        const mixVendedor = await prisma.mixVendedor.update({
             where: {
                 id: parseInt(id)
             },
@@ -196,13 +187,13 @@ const updateMixVendedor = (req, res) => __awaiter(void 0, void 0, void 0, functi
         console.error('Erro ao atualizar mix de vendedor:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.updateMixVendedor = updateMixVendedor;
 // DELETE /api/mix-vendedor/:id
-const deleteMixVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteMixVendedor = async (req, res) => {
     try {
         const { id } = req.params;
-        yield prisma.mixVendedor.delete({
+        await prisma.mixVendedor.delete({
             where: {
                 id: parseInt(id)
             }
@@ -213,5 +204,5 @@ const deleteMixVendedor = (req, res) => __awaiter(void 0, void 0, void 0, functi
         console.error('Erro ao deletar mix de vendedor:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.deleteMixVendedor = deleteMixVendedor;

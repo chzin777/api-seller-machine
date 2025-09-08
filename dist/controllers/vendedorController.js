@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getVendedoresResumo = exports.getVendedoresWithStats = exports.getVendedoresSemFilial = exports.getVendedoresByFilial = exports.getVendedorByCpf = exports.deleteVendedor = exports.updateVendedor = exports.createVendedor = exports.getVendedorById = exports.getAllVendedores = void 0;
 const index_1 = require("../index");
@@ -15,9 +6,9 @@ const index_1 = require("../index");
  * Get all vendedores
  * GET /api/vendedores
  */
-const getAllVendedores = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getAllVendedores = async (req, res) => {
     try {
-        const vendedores = yield index_1.prisma.vendedor.findMany({
+        const vendedores = await index_1.prisma.vendedor.findMany({
             include: {
                 filial: {
                     select: {
@@ -37,20 +28,20 @@ const getAllVendedores = (req, res) => __awaiter(void 0, void 0, void 0, functio
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getAllVendedores = getAllVendedores;
 /**
  * Get vendedor by ID
  * GET /api/vendedores/:id
  */
-const getVendedorById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getVendedorById = async (req, res) => {
     try {
         const { id } = req.params;
         const vendedorId = parseInt(id, 10);
         if (isNaN(vendedorId)) {
             return res.status(400).json({ error: 'ID deve ser um número válido.' });
         }
-        const vendedor = yield index_1.prisma.vendedor.findUnique({
+        const vendedor = await index_1.prisma.vendedor.findUnique({
             where: { id: vendedorId },
             include: {
                 filial: {
@@ -71,13 +62,13 @@ const getVendedorById = (req, res) => __awaiter(void 0, void 0, void 0, function
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getVendedorById = getVendedorById;
 /**
  * Create new vendedor
  * POST /api/vendedores
  */
-const createVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createVendedor = async (req, res) => {
     try {
         const { nome, cpf, filialId } = req.body;
         if (!nome || !cpf) {
@@ -98,14 +89,14 @@ const createVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function*
             if (isNaN(filialIdInt)) {
                 return res.status(400).json({ error: 'ID da filial deve ser um número válido.' });
             }
-            const filial = yield index_1.prisma.filial.findUnique({
+            const filial = await index_1.prisma.filial.findUnique({
                 where: { id: filialIdInt },
             });
             if (!filial) {
                 return res.status(404).json({ error: 'Filial não encontrada.' });
             }
         }
-        const newVendedor = yield index_1.prisma.vendedor.create({
+        const newVendedor = await index_1.prisma.vendedor.create({
             data: {
                 nome,
                 cpf,
@@ -130,13 +121,13 @@ const createVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function*
         }
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.createVendedor = createVendedor;
 /**
  * Update vendedor
  * PUT /api/vendedores/:id
  */
-const updateVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updateVendedor = async (req, res) => {
     try {
         const { id } = req.params;
         const { nome, cpf, filialId } = req.body;
@@ -159,16 +150,20 @@ const updateVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function*
             if (isNaN(filialIdInt)) {
                 return res.status(400).json({ error: 'ID da filial deve ser um número válido.' });
             }
-            const filial = yield index_1.prisma.filial.findUnique({
+            const filial = await index_1.prisma.filial.findUnique({
                 where: { id: filialIdInt },
             });
             if (!filial) {
                 return res.status(404).json({ error: 'Filial não encontrada.' });
             }
         }
-        const updatedVendedor = yield index_1.prisma.vendedor.update({
+        const updatedVendedor = await index_1.prisma.vendedor.update({
             where: { id: vendedorId },
-            data: Object.assign(Object.assign(Object.assign({}, (nome && { nome })), (cpf && { cpf })), (filialId !== undefined && { filialId: filialId ? parseInt(filialId, 10) : null })),
+            data: {
+                ...(nome && { nome }),
+                ...(cpf && { cpf }),
+                ...(filialId !== undefined && { filialId: filialId ? parseInt(filialId, 10) : null }),
+            },
             include: {
                 filial: {
                     select: {
@@ -191,20 +186,20 @@ const updateVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function*
         }
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.updateVendedor = updateVendedor;
 /**
  * Delete vendedor
  * DELETE /api/vendedores/:id
  */
-const deleteVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteVendedor = async (req, res) => {
     try {
         const { id } = req.params;
         const vendedorId = parseInt(id, 10);
         if (isNaN(vendedorId)) {
             return res.status(400).json({ error: 'ID deve ser um número válido.' });
         }
-        yield index_1.prisma.vendedor.delete({
+        await index_1.prisma.vendedor.delete({
             where: { id: vendedorId },
         });
         res.status(200).json({ message: 'Vendedor removido com sucesso.' });
@@ -220,19 +215,19 @@ const deleteVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function*
         }
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.deleteVendedor = deleteVendedor;
 /**
  * Get vendedor by CPF
  * GET /api/vendedores/cpf/:cpf
  */
-const getVendedorByCpf = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getVendedorByCpf = async (req, res) => {
     try {
         const { cpf } = req.params;
         if (!cpf || cpf.trim() === '') {
             return res.status(400).json({ error: 'CPF deve ser fornecido.' });
         }
-        const vendedor = yield index_1.prisma.vendedor.findFirst({
+        const vendedor = await index_1.prisma.vendedor.findFirst({
             where: { cpf: cpf },
             include: {
                 filial: {
@@ -253,20 +248,20 @@ const getVendedorByCpf = (req, res) => __awaiter(void 0, void 0, void 0, functio
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getVendedorByCpf = getVendedorByCpf;
 /**
  * Get vendedores by filial
  * GET /api/vendedores/filial/:filialId
  */
-const getVendedoresByFilial = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getVendedoresByFilial = async (req, res) => {
     try {
         const { filialId } = req.params;
         const filialIdInt = parseInt(filialId, 10);
         if (isNaN(filialIdInt)) {
             return res.status(400).json({ error: 'ID da filial deve ser um número válido.' });
         }
-        const vendedores = yield index_1.prisma.vendedor.findMany({
+        const vendedores = await index_1.prisma.vendedor.findMany({
             where: { filialId: filialIdInt },
             include: {
                 filial: {
@@ -287,15 +282,15 @@ const getVendedoresByFilial = (req, res) => __awaiter(void 0, void 0, void 0, fu
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getVendedoresByFilial = getVendedoresByFilial;
 /**
  * Get vendedores sem filial
  * GET /api/vendedores/sem-filial
  */
-const getVendedoresSemFilial = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getVendedoresSemFilial = async (req, res) => {
     try {
-        const vendedores = yield index_1.prisma.vendedor.findMany({
+        const vendedores = await index_1.prisma.vendedor.findMany({
             where: { filialId: null },
             orderBy: {
                 nome: 'asc',
@@ -306,15 +301,15 @@ const getVendedoresSemFilial = (req, res) => __awaiter(void 0, void 0, void 0, f
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getVendedoresSemFilial = getVendedoresSemFilial;
 /**
  * Get vendedores with statistics
  * GET /api/vendedores/stats
  */
-const getVendedoresWithStats = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getVendedoresWithStats = async (req, res) => {
     try {
-        const vendedores = yield index_1.prisma.vendedor.findMany({
+        const vendedores = await index_1.prisma.vendedor.findMany({
             include: {
                 filial: {
                     select: {
@@ -339,19 +334,19 @@ const getVendedoresWithStats = (req, res) => __awaiter(void 0, void 0, void 0, f
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getVendedoresWithStats = getVendedoresWithStats;
 /**
  * Get resumo de vendedores
  * GET /api/vendedores/resumo
  */
-const getVendedoresResumo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getVendedoresResumo = async (req, res) => {
     var _a;
     try {
         // Total de vendedores
-        const totalVendedores = yield index_1.prisma.vendedor.count();
+        const totalVendedores = await index_1.prisma.vendedor.count();
         // Vendedores por filial
-        const vendedoresPorFilial = yield index_1.prisma.vendedor.groupBy({
+        const vendedoresPorFilial = await index_1.prisma.vendedor.groupBy({
             by: ['filialId'],
             _count: {
                 id: true,
@@ -361,7 +356,7 @@ const getVendedoresResumo = (req, res) => __awaiter(void 0, void 0, void 0, func
         const filiaisIds = vendedoresPorFilial
             .map(item => item.filialId)
             .filter((id) => id !== null);
-        const filiais = yield index_1.prisma.filial.findMany({
+        const filiais = await index_1.prisma.filial.findMany({
             where: { id: { in: filiaisIds } },
             select: { id: true, nome: true }
         });
@@ -384,5 +379,5 @@ const getVendedoresResumo = (req, res) => __awaiter(void 0, void 0, void 0, func
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getVendedoresResumo = getVendedoresResumo;

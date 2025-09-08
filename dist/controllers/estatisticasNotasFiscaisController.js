@@ -1,17 +1,8 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteEstatisticasNotasFiscais = exports.updateEstatisticasNotasFiscais = exports.createEstatisticasNotasFiscais = exports.getEstatisticasNotasFiscaisById = exports.getAllEstatisticasNotasFiscais = void 0;
 const index_1 = require("../index");
-const getAllEstatisticasNotasFiscais = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getAllEstatisticasNotasFiscais = async (req, res) => {
     try {
         const { filialId, tipoPeriodo, dataInicio, dataFim } = req.query;
         const where = {};
@@ -26,7 +17,7 @@ const getAllEstatisticasNotasFiscais = (req, res) => __awaiter(void 0, void 0, v
             if (dataFim)
                 where.data.lte = new Date(dataFim);
         }
-        const estatisticas = yield index_1.prisma.estatisticasNotasFiscais.findMany({
+        const estatisticas = await index_1.prisma.estatisticasNotasFiscais.findMany({
             where,
             include: { filial: true },
             orderBy: { data: 'desc' }
@@ -36,12 +27,12 @@ const getAllEstatisticasNotasFiscais = (req, res) => __awaiter(void 0, void 0, v
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getAllEstatisticasNotasFiscais = getAllEstatisticasNotasFiscais;
-const getEstatisticasNotasFiscaisById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getEstatisticasNotasFiscaisById = async (req, res) => {
     try {
         const { id } = req.params;
-        const estatisticas = yield index_1.prisma.estatisticasNotasFiscais.findUnique({
+        const estatisticas = await index_1.prisma.estatisticasNotasFiscais.findUnique({
             where: { id: parseInt(id, 10) },
             include: { filial: true }
         });
@@ -53,12 +44,12 @@ const getEstatisticasNotasFiscaisById = (req, res) => __awaiter(void 0, void 0, 
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getEstatisticasNotasFiscaisById = getEstatisticasNotasFiscaisById;
-const createEstatisticasNotasFiscais = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createEstatisticasNotasFiscais = async (req, res) => {
     try {
         const { filialId, data, tipoPeriodo, quantidadeNotas, quantidadeItens, mediaItensPorNota, valorTotalNotas } = req.body;
-        const estatisticas = yield index_1.prisma.estatisticasNotasFiscais.create({
+        const estatisticas = await index_1.prisma.estatisticasNotasFiscais.create({
             data: {
                 filialId: parseInt(filialId, 10),
                 data: new Date(data),
@@ -74,13 +65,13 @@ const createEstatisticasNotasFiscais = (req, res) => __awaiter(void 0, void 0, v
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.createEstatisticasNotasFiscais = createEstatisticasNotasFiscais;
-const updateEstatisticasNotasFiscais = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updateEstatisticasNotasFiscais = async (req, res) => {
     try {
         const { id } = req.params;
         const { filialId, data, tipoPeriodo, quantidadeNotas, quantidadeItens, mediaItensPorNota, valorTotalNotas } = req.body;
-        const estatisticas = yield index_1.prisma.estatisticasNotasFiscais.update({
+        const estatisticas = await index_1.prisma.estatisticasNotasFiscais.update({
             where: { id: parseInt(id, 10) },
             data: {
                 filialId: filialId ? parseInt(filialId, 10) : undefined,
@@ -97,12 +88,12 @@ const updateEstatisticasNotasFiscais = (req, res) => __awaiter(void 0, void 0, v
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.updateEstatisticasNotasFiscais = updateEstatisticasNotasFiscais;
-const deleteEstatisticasNotasFiscais = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteEstatisticasNotasFiscais = async (req, res) => {
     try {
         const { id } = req.params;
-        yield index_1.prisma.estatisticasNotasFiscais.delete({
+        await index_1.prisma.estatisticasNotasFiscais.delete({
             where: { id: parseInt(id, 10) }
         });
         res.status(204).send();
@@ -110,5 +101,5 @@ const deleteEstatisticasNotasFiscais = (req, res) => __awaiter(void 0, void 0, v
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.deleteEstatisticasNotasFiscais = deleteEstatisticasNotasFiscais;

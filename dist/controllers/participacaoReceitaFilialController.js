@@ -1,18 +1,9 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteParticipacaoReceitaFilial = exports.updateParticipacaoReceitaFilial = exports.createParticipacaoReceitaFilial = exports.getParticipacaoReceitaFilialById = exports.getAllParticipacaoReceitaFilial = void 0;
 const index_1 = require("../index");
 // GET /api/participacao-receita-filial - Buscar todas as participações de receita de filiais
-const getAllParticipacaoReceitaFilial = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getAllParticipacaoReceitaFilial = async (req, res) => {
     try {
         const { filialId, tipoPeriodo, dataInicio, dataFim } = req.query;
         const whereClause = {};
@@ -38,7 +29,7 @@ const getAllParticipacaoReceitaFilial = (req, res) => __awaiter(void 0, void 0, 
                 lte: new Date(dataFim)
             };
         }
-        const participacaoReceita = yield index_1.prisma.participacaoReceitaFilial.findMany({
+        const participacaoReceita = await index_1.prisma.participacaoReceitaFilial.findMany({
             where: whereClause,
             include: {
                 filial: {
@@ -61,13 +52,13 @@ const getAllParticipacaoReceitaFilial = (req, res) => __awaiter(void 0, void 0, 
         console.error('Erro ao buscar participação de receita de filiais:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getAllParticipacaoReceitaFilial = getAllParticipacaoReceitaFilial;
 // GET /api/participacao-receita-filial/:id - Buscar participação de receita de filial por ID
-const getParticipacaoReceitaFilialById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getParticipacaoReceitaFilialById = async (req, res) => {
     try {
         const { id } = req.params;
-        const participacaoReceita = yield index_1.prisma.participacaoReceitaFilial.findUnique({
+        const participacaoReceita = await index_1.prisma.participacaoReceitaFilial.findUnique({
             where: { id: parseInt(id) },
             include: {
                 filial: {
@@ -90,13 +81,13 @@ const getParticipacaoReceitaFilialById = (req, res) => __awaiter(void 0, void 0,
         console.error('Erro ao buscar participação de receita de filial:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getParticipacaoReceitaFilialById = getParticipacaoReceitaFilialById;
 // POST /api/participacao-receita-filial - Criar nova participação de receita de filial
-const createParticipacaoReceitaFilial = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createParticipacaoReceitaFilial = async (req, res) => {
     try {
         const { filialId, data, tipoPeriodo, receitaFilial, receitaTotalEmpresa, percentualParticipacao, posicaoRanking, totalFiliais } = req.body;
-        const participacaoReceita = yield index_1.prisma.participacaoReceitaFilial.create({
+        const participacaoReceita = await index_1.prisma.participacaoReceitaFilial.create({
             data: {
                 filialId,
                 data: new Date(data),
@@ -125,14 +116,14 @@ const createParticipacaoReceitaFilial = (req, res) => __awaiter(void 0, void 0, 
         console.error('Erro ao criar participação de receita de filial:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.createParticipacaoReceitaFilial = createParticipacaoReceitaFilial;
 // PUT /api/participacao-receita-filial/:id - Atualizar participação de receita de filial
-const updateParticipacaoReceitaFilial = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updateParticipacaoReceitaFilial = async (req, res) => {
     try {
         const { id } = req.params;
         const { filialId, data, tipoPeriodo, receitaFilial, receitaTotalEmpresa, percentualParticipacao, posicaoRanking, totalFiliais } = req.body;
-        const participacaoReceita = yield index_1.prisma.participacaoReceitaFilial.update({
+        const participacaoReceita = await index_1.prisma.participacaoReceitaFilial.update({
             where: { id: parseInt(id) },
             data: {
                 filialId,
@@ -162,13 +153,13 @@ const updateParticipacaoReceitaFilial = (req, res) => __awaiter(void 0, void 0, 
         console.error('Erro ao atualizar participação de receita de filial:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.updateParticipacaoReceitaFilial = updateParticipacaoReceitaFilial;
 // DELETE /api/participacao-receita-filial/:id - Deletar participação de receita de filial
-const deleteParticipacaoReceitaFilial = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteParticipacaoReceitaFilial = async (req, res) => {
     try {
         const { id } = req.params;
-        yield index_1.prisma.participacaoReceitaFilial.delete({
+        await index_1.prisma.participacaoReceitaFilial.delete({
             where: { id: parseInt(id) }
         });
         res.status(204).send();
@@ -177,5 +168,5 @@ const deleteParticipacaoReceitaFilial = (req, res) => __awaiter(void 0, void 0, 
         console.error('Erro ao deletar participação de receita de filial:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.deleteParticipacaoReceitaFilial = deleteParticipacaoReceitaFilial;

@@ -1,17 +1,8 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteSazonalidade = exports.updateSazonalidade = exports.createSazonalidade = exports.getSazonalidadeById = exports.getAllSazonalidade = void 0;
 const index_1 = require("../index");
-const getAllSazonalidade = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getAllSazonalidade = async (req, res) => {
     try {
         const { filialId, ano } = req.query;
         const where = {};
@@ -19,7 +10,7 @@ const getAllSazonalidade = (req, res) => __awaiter(void 0, void 0, void 0, funct
             where.filialId = parseInt(filialId, 10);
         if (ano)
             where.ano = parseInt(ano, 10);
-        const sazonalidade = yield index_1.prisma.sazonalidade.findMany({
+        const sazonalidade = await index_1.prisma.sazonalidade.findMany({
             where,
             include: { filial: true },
             orderBy: [
@@ -32,12 +23,12 @@ const getAllSazonalidade = (req, res) => __awaiter(void 0, void 0, void 0, funct
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getAllSazonalidade = getAllSazonalidade;
-const getSazonalidadeById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getSazonalidadeById = async (req, res) => {
     try {
         const { id } = req.params;
-        const sazonalidade = yield index_1.prisma.sazonalidade.findUnique({
+        const sazonalidade = await index_1.prisma.sazonalidade.findUnique({
             where: { id: parseInt(id, 10) },
             include: { filial: true }
         });
@@ -49,12 +40,12 @@ const getSazonalidadeById = (req, res) => __awaiter(void 0, void 0, void 0, func
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getSazonalidadeById = getSazonalidadeById;
-const createSazonalidade = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createSazonalidade = async (req, res) => {
     try {
         const { filialId, ano, mes, valorTotal, quantidadeNotas, quantidadeItens, percentualAno } = req.body;
-        const sazonalidade = yield index_1.prisma.sazonalidade.create({
+        const sazonalidade = await index_1.prisma.sazonalidade.create({
             data: {
                 filialId: filialId ? parseInt(filialId, 10) : undefined,
                 ano: parseInt(ano, 10),
@@ -70,13 +61,13 @@ const createSazonalidade = (req, res) => __awaiter(void 0, void 0, void 0, funct
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.createSazonalidade = createSazonalidade;
-const updateSazonalidade = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updateSazonalidade = async (req, res) => {
     try {
         const { id } = req.params;
         const { filialId, ano, mes, valorTotal, quantidadeNotas, quantidadeItens, percentualAno } = req.body;
-        const sazonalidade = yield index_1.prisma.sazonalidade.update({
+        const sazonalidade = await index_1.prisma.sazonalidade.update({
             where: { id: parseInt(id, 10) },
             data: {
                 filialId: filialId ? parseInt(filialId, 10) : undefined,
@@ -93,12 +84,12 @@ const updateSazonalidade = (req, res) => __awaiter(void 0, void 0, void 0, funct
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.updateSazonalidade = updateSazonalidade;
-const deleteSazonalidade = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteSazonalidade = async (req, res) => {
     try {
         const { id } = req.params;
-        yield index_1.prisma.sazonalidade.delete({
+        await index_1.prisma.sazonalidade.delete({
             where: { id: parseInt(id, 10) }
         });
         res.status(204).send();
@@ -106,5 +97,5 @@ const deleteSazonalidade = (req, res) => __awaiter(void 0, void 0, void 0, funct
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.deleteSazonalidade = deleteSazonalidade;

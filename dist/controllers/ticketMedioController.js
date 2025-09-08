@@ -1,17 +1,8 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteTicketMedio = exports.updateTicketMedio = exports.createTicketMedio = exports.getTicketMedioById = exports.getAllTicketMedio = void 0;
 const index_1 = require("../index");
-const getAllTicketMedio = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getAllTicketMedio = async (req, res) => {
     try {
         const { filialId, tipoPeriodo, dataInicio, dataFim } = req.query;
         const where = {};
@@ -26,7 +17,7 @@ const getAllTicketMedio = (req, res) => __awaiter(void 0, void 0, void 0, functi
             if (dataFim)
                 where.data.lte = new Date(dataFim);
         }
-        const ticketMedio = yield index_1.prisma.ticketMedio.findMany({
+        const ticketMedio = await index_1.prisma.ticketMedio.findMany({
             where,
             include: { filial: true },
             orderBy: { data: 'desc' }
@@ -36,12 +27,12 @@ const getAllTicketMedio = (req, res) => __awaiter(void 0, void 0, void 0, functi
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getAllTicketMedio = getAllTicketMedio;
-const getTicketMedioById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getTicketMedioById = async (req, res) => {
     try {
         const { id } = req.params;
-        const ticketMedio = yield index_1.prisma.ticketMedio.findUnique({
+        const ticketMedio = await index_1.prisma.ticketMedio.findUnique({
             where: { id: parseInt(id, 10) },
             include: { filial: true }
         });
@@ -53,12 +44,12 @@ const getTicketMedioById = (req, res) => __awaiter(void 0, void 0, void 0, funct
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getTicketMedioById = getTicketMedioById;
-const createTicketMedio = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createTicketMedio = async (req, res) => {
     try {
         const { filialId, data, tipoPeriodo, ticketMedioNF, ticketMedioItem, quantidadeNotas, quantidadeItens } = req.body;
-        const ticketMedio = yield index_1.prisma.ticketMedio.create({
+        const ticketMedio = await index_1.prisma.ticketMedio.create({
             data: {
                 filialId: filialId ? parseInt(filialId, 10) : undefined,
                 data: new Date(data),
@@ -74,13 +65,13 @@ const createTicketMedio = (req, res) => __awaiter(void 0, void 0, void 0, functi
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.createTicketMedio = createTicketMedio;
-const updateTicketMedio = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updateTicketMedio = async (req, res) => {
     try {
         const { id } = req.params;
         const { filialId, data, tipoPeriodo, ticketMedioNF, ticketMedioItem, quantidadeNotas, quantidadeItens } = req.body;
-        const ticketMedio = yield index_1.prisma.ticketMedio.update({
+        const ticketMedio = await index_1.prisma.ticketMedio.update({
             where: { id: parseInt(id, 10) },
             data: {
                 filialId: filialId ? parseInt(filialId, 10) : undefined,
@@ -97,12 +88,12 @@ const updateTicketMedio = (req, res) => __awaiter(void 0, void 0, void 0, functi
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.updateTicketMedio = updateTicketMedio;
-const deleteTicketMedio = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteTicketMedio = async (req, res) => {
     try {
         const { id } = req.params;
-        yield index_1.prisma.ticketMedio.delete({
+        await index_1.prisma.ticketMedio.delete({
             where: { id: parseInt(id, 10) }
         });
         res.status(204).send();
@@ -110,5 +101,5 @@ const deleteTicketMedio = (req, res) => __awaiter(void 0, void 0, void 0, functi
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.deleteTicketMedio = deleteTicketMedio;

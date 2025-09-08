@@ -1,19 +1,10 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteTicketMedioVendedor = exports.updateTicketMedioVendedor = exports.createTicketMedioVendedor = exports.getTicketMedioVendedorById = exports.getAllTicketMedioVendedor = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 // GET /api/ticket-medio-vendedor
-const getAllTicketMedioVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getAllTicketMedioVendedor = async (req, res) => {
     try {
         const { filialId, vendedorId, tipoPeriodo, dataInicio, dataFim } = req.query;
         const where = {};
@@ -42,7 +33,7 @@ const getAllTicketMedioVendedor = (req, res) => __awaiter(void 0, void 0, void 0
                 lte: new Date(dataFim)
             };
         }
-        const ticketsMedios = yield prisma.ticketMedioVendedor.findMany({
+        const ticketsMedios = await prisma.ticketMedioVendedor.findMany({
             where,
             include: {
                 filial: {
@@ -69,13 +60,13 @@ const getAllTicketMedioVendedor = (req, res) => __awaiter(void 0, void 0, void 0
         console.error('Erro ao buscar tickets médios de vendedores:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getAllTicketMedioVendedor = getAllTicketMedioVendedor;
 // GET /api/ticket-medio-vendedor/:id
-const getTicketMedioVendedorById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getTicketMedioVendedorById = async (req, res) => {
     try {
         const { id } = req.params;
-        const ticketMedio = yield prisma.ticketMedioVendedor.findUnique({
+        const ticketMedio = await prisma.ticketMedioVendedor.findUnique({
             where: {
                 id: parseInt(id)
             },
@@ -104,13 +95,13 @@ const getTicketMedioVendedorById = (req, res) => __awaiter(void 0, void 0, void 
         console.error('Erro ao buscar ticket médio de vendedor:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getTicketMedioVendedorById = getTicketMedioVendedorById;
 // POST /api/ticket-medio-vendedor
-const createTicketMedioVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createTicketMedioVendedor = async (req, res) => {
     try {
         const { filialId, vendedorId, data, tipoPeriodo, ticketMedio, quantidadeNotas, valorTotal } = req.body;
-        const ticketMedioVendedor = yield prisma.ticketMedioVendedor.create({
+        const ticketMedioVendedor = await prisma.ticketMedioVendedor.create({
             data: {
                 filialId: filialId ? parseInt(filialId) : null,
                 vendedorId: parseInt(vendedorId),
@@ -142,14 +133,14 @@ const createTicketMedioVendedor = (req, res) => __awaiter(void 0, void 0, void 0
         console.error('Erro ao criar ticket médio de vendedor:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.createTicketMedioVendedor = createTicketMedioVendedor;
 // PUT /api/ticket-medio-vendedor/:id
-const updateTicketMedioVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updateTicketMedioVendedor = async (req, res) => {
     try {
         const { id } = req.params;
         const { filialId, vendedorId, data, tipoPeriodo, ticketMedio, quantidadeNotas, valorTotal } = req.body;
-        const ticketMedioVendedor = yield prisma.ticketMedioVendedor.update({
+        const ticketMedioVendedor = await prisma.ticketMedioVendedor.update({
             where: {
                 id: parseInt(id)
             },
@@ -184,13 +175,13 @@ const updateTicketMedioVendedor = (req, res) => __awaiter(void 0, void 0, void 0
         console.error('Erro ao atualizar ticket médio de vendedor:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.updateTicketMedioVendedor = updateTicketMedioVendedor;
 // DELETE /api/ticket-medio-vendedor/:id
-const deleteTicketMedioVendedor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteTicketMedioVendedor = async (req, res) => {
     try {
         const { id } = req.params;
-        yield prisma.ticketMedioVendedor.delete({
+        await prisma.ticketMedioVendedor.delete({
             where: {
                 id: parseInt(id)
             }
@@ -201,5 +192,5 @@ const deleteTicketMedioVendedor = (req, res) => __awaiter(void 0, void 0, void 0
         console.error('Erro ao deletar ticket médio de vendedor:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.deleteTicketMedioVendedor = deleteTicketMedioVendedor;

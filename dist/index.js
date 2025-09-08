@@ -32,15 +32,6 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -51,6 +42,8 @@ const dotenv = __importStar(require("dotenv"));
 dotenv.config(); // This line loads the .env file
 const express_1 = __importDefault(require("express"));
 const client_1 = require("@prisma/client");
+require("reflect-metadata"); // Required for type-graphql
+const server_1 = require("./graphql/server");
 const cors_1 = __importDefault(require("cors")); // Import cors for CORS configuration
 // Import configuration
 const environment_1 = require("./config/environment");
@@ -121,10 +114,7 @@ app.use((0, cors_1.default)({
 }));
 // Global middlewares
 app.use(validation_1.sanitizeStrings);
-// API Home Route
-app.get('/', (req, res) => {
-    res.send('API is running!');
-});
+// API Home Route will be defined in main() function after GraphQL setup
 // API Auth Route (login)
 app.use('/api/auth', authRoutes_1.default);
 // API Routes - Business Entities
@@ -174,25 +164,38 @@ app.use('/api/proxy', proxyRoutes_1.default);
 // Error handling middlewares (must be last)
 app.use(errorHandler_1.notFoundHandler);
 app.use(errorHandler_1.errorHandler);
-function main() {
-    return __awaiter(this, void 0, void 0, function* () {
-        // Log configuration
-        (0, environment_1.logConfiguration)();
-        const port = process.env.PORT || environment_1.config.server.port;
-        app.listen(port, () => {
-            let publicUrl = '';
-            if (process.env.RAILWAY_PUBLIC_DOMAIN) {
-                publicUrl = `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
+async function main() {
+    // Log configuration
+    (0, environment_1.logConfiguration)();
+    const port = process.env.PORT || environment_1.config.server.port;
+    // Start GraphQL server in parallel
+    (0, server_1.createGraphQLServer)().catch(error => {
+        console.error('Failed to start GraphQL server:', error);
+    });
+    // Add GraphQL endpoint info to home route
+    app.get('/', (req, res) => {
+        res.json({
+            message: 'API is running!',
+            endpoints: {
+                rest: '/api',
+                graphql: 'http://localhost:4000/graphql'
             }
-            else if (process.env.RAILWAY_URL) {
-                publicUrl = process.env.RAILWAY_URL;
-            }
-            else {
-                publicUrl = `http://localhost:${port}`;
-            }
-            console.log(`🌟 Server is running on ${publicUrl}`);
-            console.log(`📋 API Documentation: ${publicUrl}${environment_1.config.api.prefix}`);
         });
+    });
+    app.listen(port, () => {
+        let publicUrl = '';
+        if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+            publicUrl = `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
+        }
+        else if (process.env.RAILWAY_URL) {
+            publicUrl = process.env.RAILWAY_URL;
+        }
+        else {
+            publicUrl = `http://localhost:${port}`;
+        }
+        console.log(`🌟 REST API Server is running on ${publicUrl}`);
+        console.log(`📋 API Documentation: ${publicUrl}${environment_1.config.api.prefix}`);
+        console.log(`🚀 GraphQL Server: http://localhost:4000/graphql`);
     });
 }
 main()
@@ -200,6 +203,6 @@ main()
     console.error(e);
     process.exit(1);
 })
-    .finally(() => __awaiter(void 0, void 0, void 0, function* () {
-    yield exports.prisma.$disconnect();
-}));
+    .finally(async () => {
+    await exports.prisma.$disconnect();
+});

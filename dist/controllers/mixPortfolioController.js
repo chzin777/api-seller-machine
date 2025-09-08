@@ -1,19 +1,10 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getProdutosSemGiro = exports.getCrossSell = exports.getBundleRate = exports.getPrecoRealizadoVsReferencia = exports.getMixPorTipo = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 // Mix % por tipo (Máquina/Peça/Serviço)
-const getMixPorTipo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getMixPorTipo = async (req, res) => {
     try {
         const { filialId, dataInicio, dataFim } = req.query;
         const whereClause = {};
@@ -27,7 +18,7 @@ const getMixPorTipo = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             };
         }
         // Buscar todos os itens de notas fiscais com produtos
-        const itens = yield prisma.notaFiscalItem.findMany({
+        const itens = await prisma.notaFiscalItem.findMany({
             where: {
                 notaFiscal: whereClause
             },
@@ -80,10 +71,10 @@ const getMixPorTipo = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         console.error('Erro ao calcular mix por tipo:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getMixPorTipo = getMixPorTipo;
 // Preço realizado vs referência (peças/serviços)
-const getPrecoRealizadoVsReferencia = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getPrecoRealizadoVsReferencia = async (req, res) => {
     try {
         const { filialId, dataInicio, dataFim, tipos } = req.query;
         const whereClause = {};
@@ -98,7 +89,7 @@ const getPrecoRealizadoVsReferencia = (req, res) => __awaiter(void 0, void 0, vo
         }
         // Filtrar apenas peças e serviços por padrão
         const tiposPermitidos = tipos ? tipos.split(',') : ['Peça', 'Serviço'];
-        const itens = yield prisma.notaFiscalItem.findMany({
+        const itens = await prisma.notaFiscalItem.findMany({
             where: {
                 notaFiscal: whereClause,
                 produto: {
@@ -169,10 +160,10 @@ const getPrecoRealizadoVsReferencia = (req, res) => __awaiter(void 0, void 0, vo
         console.error('Erro ao calcular preço realizado vs referência:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getPrecoRealizadoVsReferencia = getPrecoRealizadoVsReferencia;
 // % de NFs com Máquina + Peças/Serviços (bundle rate)
-const getBundleRate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getBundleRate = async (req, res) => {
     try {
         const { filialId, dataInicio, dataFim } = req.query;
         const whereClause = {};
@@ -186,7 +177,7 @@ const getBundleRate = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             };
         }
         // Buscar todas as notas fiscais com seus itens
-        const notasFiscais = yield prisma.notasFiscalCabecalho.findMany({
+        const notasFiscais = await prisma.notasFiscalCabecalho.findMany({
             where: whereClause,
             include: {
                 itens: {
@@ -247,10 +238,10 @@ const getBundleRate = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         console.error('Erro ao calcular bundle rate:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getBundleRate = getBundleRate;
 // Peças/Serviços por NF quando há máquina (cross-sell)
-const getCrossSell = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getCrossSell = async (req, res) => {
     try {
         const { filialId, dataInicio, dataFim } = req.query;
         const whereClause = {};
@@ -264,14 +255,17 @@ const getCrossSell = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             };
         }
         // Buscar notas fiscais que contenham máquinas
-        const notasComMaquina = yield prisma.notasFiscalCabecalho.findMany({
-            where: Object.assign(Object.assign({}, whereClause), { itens: {
+        const notasComMaquina = await prisma.notasFiscalCabecalho.findMany({
+            where: {
+                ...whereClause,
+                itens: {
                     some: {
                         produto: {
                             tipo: 'Máquina'
                         }
                     }
-                } }),
+                }
+            },
             include: {
                 itens: {
                     include: {
@@ -334,10 +328,10 @@ const getCrossSell = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         console.error('Erro ao calcular cross-sell:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getCrossSell = getCrossSell;
 // Produtos "sem giro" (sem venda no período)
-const getProdutosSemGiro = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getProdutosSemGiro = async (req, res) => {
     try {
         const { filialId, dataInicio, dataFim, tipo, limit = '50' } = req.query;
         const whereClause = {};
@@ -351,7 +345,7 @@ const getProdutosSemGiro = (req, res) => __awaiter(void 0, void 0, void 0, funct
             whereClause.filialId = parseInt(filialId);
         }
         // Buscar produtos vendidos no período
-        const produtosVendidos = yield prisma.notaFiscalItem.findMany({
+        const produtosVendidos = await prisma.notaFiscalItem.findMany({
             where: {
                 notaFiscal: whereClause
             },
@@ -370,7 +364,7 @@ const getProdutosSemGiro = (req, res) => __awaiter(void 0, void 0, void 0, funct
         if (tipo) {
             whereClauseProdutos.tipo = tipo;
         }
-        const produtosSemGiro = yield prisma.produto.findMany({
+        const produtosSemGiro = await prisma.produto.findMany({
             where: whereClauseProdutos,
             take: parseInt(limit),
             orderBy: {
@@ -378,7 +372,7 @@ const getProdutosSemGiro = (req, res) => __awaiter(void 0, void 0, void 0, funct
             }
         });
         // Contar total de produtos sem giro por tipo
-        const totalPorTipo = yield prisma.produto.groupBy({
+        const totalPorTipo = await prisma.produto.groupBy({
             by: ['tipo'],
             where: whereClauseProdutos,
             _count: {
@@ -407,5 +401,5 @@ const getProdutosSemGiro = (req, res) => __awaiter(void 0, void 0, void 0, funct
         console.error('Erro ao buscar produtos sem giro:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getProdutosSemGiro = getProdutosSemGiro;

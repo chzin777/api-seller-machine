@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSalesByBranch = exports.getMonthlyRevenue = exports.getTopSellingProducts = exports.getRevenueByProductType = exports.getInactiveCustomers = exports.getRevenueBySalesperson = exports.getTotalRevenue = void 0;
 const index_1 = require("../index");
@@ -18,9 +9,9 @@ const index_1 = require("../index");
  * Calculates the total revenue from all invoices.
  * GET /api/indicadores/receita-total
  */
-const getTotalRevenue = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getTotalRevenue = async (req, res) => {
     try {
-        const result = yield index_1.prisma.notasFiscalCabecalho.aggregate({
+        const result = await index_1.prisma.notasFiscalCabecalho.aggregate({
             _sum: {
                 valorTotal: true,
             },
@@ -30,15 +21,15 @@ const getTotalRevenue = (req, res) => __awaiter(void 0, void 0, void 0, function
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getTotalRevenue = getTotalRevenue;
 /**
  * Calculates revenue grouped by salesperson.
  * GET /api/indicadores/receita-por-vendedor
  */
-const getRevenueBySalesperson = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getRevenueBySalesperson = async (req, res) => {
     try {
-        const result = yield index_1.prisma.notasFiscalCabecalho.groupBy({
+        const result = await index_1.prisma.notasFiscalCabecalho.groupBy({
             by: ['vendedorId'],
             _sum: {
                 valorTotal: true,
@@ -51,7 +42,7 @@ const getRevenueBySalesperson = (req, res) => __awaiter(void 0, void 0, void 0, 
         });
         // Fetch salesperson names for better readability
         const vendedorIds = result.map(item => item.vendedorId).filter((id) => id !== null);
-        const vendedores = yield index_1.prisma.vendedor.findMany({
+        const vendedores = await index_1.prisma.vendedor.findMany({
             where: { id: { in: vendedorIds } },
             select: { id: true, nome: true }
         });
@@ -66,7 +57,7 @@ const getRevenueBySalesperson = (req, res) => __awaiter(void 0, void 0, void 0, 
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getRevenueBySalesperson = getRevenueBySalesperson;
 // ========================================
 // CLIENTES / CRM
@@ -76,7 +67,7 @@ exports.getRevenueBySalesperson = getRevenueBySalesperson;
  * The number of days is passed as a query parameter.
  * Example: GET /api/indicadores/clientes-inativos?dias=90
  */
-const getInactiveCustomers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getInactiveCustomers = async (req, res) => {
     try {
         const { dias } = req.query;
         const inactiveDays = parseInt(dias, 10);
@@ -86,7 +77,7 @@ const getInactiveCustomers = (req, res) => __awaiter(void 0, void 0, void 0, fun
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - inactiveDays);
         // Find the last purchase date for each customer
-        const lastPurchases = yield index_1.prisma.notasFiscalCabecalho.groupBy({
+        const lastPurchases = await index_1.prisma.notasFiscalCabecalho.groupBy({
             by: ['clienteId'],
             _max: {
                 dataEmissao: true,
@@ -98,7 +89,7 @@ const getInactiveCustomers = (req, res) => __awaiter(void 0, void 0, void 0, fun
             .map(purchase => purchase.clienteId)
             .filter((id) => id !== null);
         // Get the details of the inactive customers
-        const inactiveCustomers = yield index_1.prisma.cliente.findMany({
+        const inactiveCustomers = await index_1.prisma.cliente.findMany({
             where: {
                 id: { in: inactiveCustomerIds },
             },
@@ -108,7 +99,7 @@ const getInactiveCustomers = (req, res) => __awaiter(void 0, void 0, void 0, fun
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getInactiveCustomers = getInactiveCustomers;
 // ========================================
 // MIX DE PORTFÓLIO
@@ -117,9 +108,9 @@ exports.getInactiveCustomers = getInactiveCustomers;
  * Calculates revenue grouped by product type (Maquina, Peca, Serviço).
  * GET /api/indicadores/receita-por-tipo-produto
  */
-const getRevenueByProductType = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getRevenueByProductType = async (req, res) => {
     try {
-        const items = yield index_1.prisma.notaFiscalItem.findMany({
+        const items = await index_1.prisma.notaFiscalItem.findMany({
             select: {
                 valorTotalItem: true,
                 produto: {
@@ -146,7 +137,7 @@ const getRevenueByProductType = (req, res) => __awaiter(void 0, void 0, void 0, 
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getRevenueByProductType = getRevenueByProductType;
 /**
  * Get top selling products based on quantity sold
@@ -154,11 +145,11 @@ exports.getRevenueByProductType = getRevenueByProductType;
  * Query parameter: limit (optional, default=10)
  * GET /api/indicadores/produtos-mais-vendidos?limit=10
  */
-const getTopSellingProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getTopSellingProducts = async (req, res) => {
     try {
         const { limit } = req.query;
         const limitNumber = parseInt(limit, 10) || 10;
-        const topProducts = yield index_1.prisma.notaFiscalItem.groupBy({
+        const topProducts = await index_1.prisma.notaFiscalItem.groupBy({
             by: ['produtoId'],
             _sum: {
                 Quantidade: true,
@@ -173,7 +164,7 @@ const getTopSellingProducts = (req, res) => __awaiter(void 0, void 0, void 0, fu
         });
         // Fetch product details for better readability
         const productIds = topProducts.map(item => item.produtoId);
-        const produtos = yield index_1.prisma.produto.findMany({
+        const produtos = await index_1.prisma.produto.findMany({
             where: { id: { in: productIds } },
             select: { id: true, descricao: true, tipo: true, preco: true }
         });
@@ -188,7 +179,7 @@ const getTopSellingProducts = (req, res) => __awaiter(void 0, void 0, void 0, fu
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getTopSellingProducts = getTopSellingProducts;
 // ========================================
 // ANÁLISE TEMPORAL
@@ -198,12 +189,12 @@ exports.getTopSellingProducts = getTopSellingProducts;
  * Returns revenue data grouped by month for better temporal analysis
  * GET /api/indicadores/receita-mensal
  */
-const getMonthlyRevenue = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getMonthlyRevenue = async (req, res) => {
     try {
         const currentYear = new Date().getFullYear();
         const startDate = new Date(currentYear, 0, 1); // January 1st
         const endDate = new Date(currentYear, 11, 31); // December 31st
-        const monthlyRevenue = yield index_1.prisma.notasFiscalCabecalho.findMany({
+        const monthlyRevenue = await index_1.prisma.notasFiscalCabecalho.findMany({
             where: {
                 dataEmissao: {
                     gte: startDate,
@@ -238,7 +229,7 @@ const getMonthlyRevenue = (req, res) => __awaiter(void 0, void 0, void 0, functi
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getMonthlyRevenue = getMonthlyRevenue;
 // ========================================
 // FILIAIS
@@ -249,9 +240,9 @@ exports.getMonthlyRevenue = getMonthlyRevenue;
  * Useful for regional performance analysis
  * GET /api/indicadores/vendas-por-filial
  */
-const getSalesByBranch = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getSalesByBranch = async (req, res) => {
     try {
-        const salesByBranch = yield index_1.prisma.notasFiscalCabecalho.groupBy({
+        const salesByBranch = await index_1.prisma.notasFiscalCabecalho.groupBy({
             by: ['filialId'],
             _sum: {
                 valorTotal: true,
@@ -267,7 +258,7 @@ const getSalesByBranch = (req, res) => __awaiter(void 0, void 0, void 0, functio
         });
         // Fetch branch details for better readability
         const filialIds = salesByBranch.map(item => item.filialId).filter((id) => id !== null);
-        const filiais = yield index_1.prisma.filial.findMany({
+        const filiais = await index_1.prisma.filial.findMany({
             where: { id: { in: filialIds } },
             select: { id: true, nome: true, cidade: true, estado: true }
         });
@@ -282,5 +273,5 @@ const getSalesByBranch = (req, res) => __awaiter(void 0, void 0, void 0, functio
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getSalesByBranch = getSalesByBranch;

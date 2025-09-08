@@ -1,17 +1,8 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteItensPorNF = exports.updateItensPorNF = exports.createItensPorNF = exports.getItensPorNFById = exports.getAllItensPorNF = void 0;
 const index_1 = require("../index");
-const getAllItensPorNF = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getAllItensPorNF = async (req, res) => {
     try {
         const { filialId, tipoPeriodo, dataInicio, dataFim } = req.query;
         const where = {};
@@ -26,7 +17,7 @@ const getAllItensPorNF = (req, res) => __awaiter(void 0, void 0, void 0, functio
             if (dataFim)
                 where.data.lte = new Date(dataFim);
         }
-        const itensPorNF = yield index_1.prisma.itensPorNF.findMany({
+        const itensPorNF = await index_1.prisma.itensPorNF.findMany({
             where,
             include: { filial: true },
             orderBy: { data: 'desc' }
@@ -36,12 +27,12 @@ const getAllItensPorNF = (req, res) => __awaiter(void 0, void 0, void 0, functio
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getAllItensPorNF = getAllItensPorNF;
-const getItensPorNFById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getItensPorNFById = async (req, res) => {
     try {
         const { id } = req.params;
-        const itensPorNF = yield index_1.prisma.itensPorNF.findUnique({
+        const itensPorNF = await index_1.prisma.itensPorNF.findUnique({
             where: { id: parseInt(id, 10) },
             include: { filial: true }
         });
@@ -53,12 +44,12 @@ const getItensPorNFById = (req, res) => __awaiter(void 0, void 0, void 0, functi
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getItensPorNFById = getItensPorNFById;
-const createItensPorNF = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createItensPorNF = async (req, res) => {
     try {
         const { filialId, data, tipoPeriodo, mediaItens, p95Itens, quantidadeNotas } = req.body;
-        const itensPorNF = yield index_1.prisma.itensPorNF.create({
+        const itensPorNF = await index_1.prisma.itensPorNF.create({
             data: {
                 filialId: filialId ? parseInt(filialId, 10) : undefined,
                 data: new Date(data),
@@ -73,13 +64,13 @@ const createItensPorNF = (req, res) => __awaiter(void 0, void 0, void 0, functio
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.createItensPorNF = createItensPorNF;
-const updateItensPorNF = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updateItensPorNF = async (req, res) => {
     try {
         const { id } = req.params;
         const { filialId, data, tipoPeriodo, mediaItens, p95Itens, quantidadeNotas } = req.body;
-        const itensPorNF = yield index_1.prisma.itensPorNF.update({
+        const itensPorNF = await index_1.prisma.itensPorNF.update({
             where: { id: parseInt(id, 10) },
             data: {
                 filialId: filialId ? parseInt(filialId, 10) : undefined,
@@ -95,12 +86,12 @@ const updateItensPorNF = (req, res) => __awaiter(void 0, void 0, void 0, functio
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.updateItensPorNF = updateItensPorNF;
-const deleteItensPorNF = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteItensPorNF = async (req, res) => {
     try {
         const { id } = req.params;
-        yield index_1.prisma.itensPorNF.delete({
+        await index_1.prisma.itensPorNF.delete({
             where: { id: parseInt(id, 10) }
         });
         res.status(204).send();
@@ -108,5 +99,5 @@ const deleteItensPorNF = (req, res) => __awaiter(void 0, void 0, void 0, functio
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.deleteItensPorNF = deleteItensPorNF;

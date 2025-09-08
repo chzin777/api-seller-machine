@@ -1,24 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteRfvSegment = exports.updateRfvSegment = exports.getRfvSegments = exports.createRfvSegment = exports.calculateRfvScores = exports.createRfvParameterSet = void 0;
 const index_1 = require("../index");
@@ -123,24 +103,28 @@ const evaluateCondition = (score, condition) => {
     }
 };
 // CREATE a new RFV parameter set
-const createRfvParameterSet = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createRfvParameterSet = async (req, res) => {
     try {
-        const _a = req.body, { effectiveFrom, effectiveTo } = _a, restOfBody = __rest(_a, ["effectiveFrom", "effectiveTo"]);
-        const dataToCreate = Object.assign(Object.assign({}, restOfBody), { effectiveFrom: effectiveFrom ? new Date(effectiveFrom) : undefined, effectiveTo: effectiveTo ? new Date(effectiveTo) : undefined });
-        const newSet = yield index_1.prisma.rfvParameterSet.create({ data: dataToCreate });
+        const { effectiveFrom, effectiveTo, ...restOfBody } = req.body;
+        const dataToCreate = {
+            ...restOfBody,
+            effectiveFrom: effectiveFrom ? new Date(effectiveFrom) : undefined,
+            effectiveTo: effectiveTo ? new Date(effectiveTo) : undefined,
+        };
+        const newSet = await index_1.prisma.rfvParameterSet.create({ data: dataToCreate });
         res.status(201).json(newSet);
     }
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.createRfvParameterSet = createRfvParameterSet;
 // CALCULATE RFV scores for all customers
-const calculateRfvScores = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const calculateRfvScores = async (req, res) => {
     try {
         const { filialId } = req.query;
         const asOfDate = new Date();
-        const activeRuleSet = yield index_1.prisma.rfvParameterSet.findFirst({
+        const activeRuleSet = await index_1.prisma.rfvParameterSet.findFirst({
             where: {
                 AND: [
                     { OR: [{ filialId: filialId ? parseInt(filialId) : null }, { filialId: null }] },
@@ -154,7 +138,7 @@ const calculateRfvScores = (req, res) => __awaiter(void 0, void 0, void 0, funct
             return res.status(404).json({ error: 'No active RFV parameter set found.' });
         }
         // Fetch the custom segments associated with this rule set
-        const segments = yield index_1.prisma.rfvSegment.findMany({
+        const segments = await index_1.prisma.rfvSegment.findMany({
             where: { parameterSetId: activeRuleSet.id }
         });
         console.log('Active RFV Rule Set:', activeRuleSet.id, activeRuleSet.name);
@@ -162,7 +146,7 @@ const calculateRfvScores = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const windowStartDate = new Date();
         windowStartDate.setDate(asOfDate.getDate() - activeRuleSet.windowDays);
         console.log('Analysis window:', windowStartDate, 'to', asOfDate);
-        const salesData = yield index_1.prisma.notasFiscalCabecalho.findMany({
+        const salesData = await index_1.prisma.notasFiscalCabecalho.findMany({
             where: { dataEmissao: { gte: windowStartDate }, clienteId: { not: null } },
             select: { clienteId: true, dataEmissao: true, valorTotal: true }
         });
@@ -190,8 +174,12 @@ const calculateRfvScores = (req, res) => __awaiter(void 0, void 0, void 0, funct
             const vScore = getValueScore(metrics.value, activeRuleSet.ruleValue);
             const segmentName = determineSegmentClass(rScore, fScore, vScore, segments);
             const automaticRanking = (0, helpers_1.determineAutomaticRanking)(rScore, fScore, vScore);
-            scoredCustomers.push(Object.assign(Object.assign({ clienteId }, metrics), { rScore, fScore, vScore, rfvSegment: `${rScore}${fScore}${vScore}`, segmentName,
-                automaticRanking }));
+            scoredCustomers.push({
+                clienteId, ...metrics, rScore, fScore, vScore,
+                rfvSegment: `${rScore}${fScore}${vScore}`,
+                segmentName,
+                automaticRanking
+            });
         }
         res.status(200).json({
             ruleSetUsed: activeRuleSet.name,
@@ -202,11 +190,11 @@ const calculateRfvScores = (req, res) => __awaiter(void 0, void 0, void 0, funct
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.calculateRfvScores = calculateRfvScores;
 // ===== RFV SEGMENTS CRUD =====
 // CREATE a new RFV segment
-const createRfvSegment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createRfvSegment = async (req, res) => {
     try {
         const { parameterSetId, name, rules, priority } = req.body;
         if (!parameterSetId || !name || !rules) {
@@ -214,7 +202,7 @@ const createRfvSegment = (req, res) => __awaiter(void 0, void 0, void 0, functio
                 error: 'parameterSetId, name and rules are required'
             });
         }
-        const newSegment = yield index_1.prisma.rfvSegment.create({
+        const newSegment = await index_1.prisma.rfvSegment.create({
             data: {
                 parameterSetId: parseInt(parameterSetId),
                 name,
@@ -227,16 +215,16 @@ const createRfvSegment = (req, res) => __awaiter(void 0, void 0, void 0, functio
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.createRfvSegment = createRfvSegment;
 // GET all RFV segments (with optional parameterSetId filter)
-const getRfvSegments = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getRfvSegments = async (req, res) => {
     try {
         const { parameterSetId } = req.query;
         const where = parameterSetId
             ? { parameterSetId: parseInt(parameterSetId) }
             : {};
-        const segments = yield index_1.prisma.rfvSegment.findMany({
+        const segments = await index_1.prisma.rfvSegment.findMany({
             where,
             include: {
                 parameterSet: {
@@ -253,22 +241,26 @@ const getRfvSegments = (req, res) => __awaiter(void 0, void 0, void 0, function*
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.getRfvSegments = getRfvSegments;
 // UPDATE an RFV segment
-const updateRfvSegment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updateRfvSegment = async (req, res) => {
     try {
         const { id } = req.params;
         const { name, rules, priority } = req.body;
-        const segment = yield index_1.prisma.rfvSegment.findUnique({
+        const segment = await index_1.prisma.rfvSegment.findUnique({
             where: { id: parseInt(id) }
         });
         if (!segment) {
             return res.status(404).json({ error: 'Segment not found' });
         }
-        const updatedSegment = yield index_1.prisma.rfvSegment.update({
+        const updatedSegment = await index_1.prisma.rfvSegment.update({
             where: { id: parseInt(id) },
-            data: Object.assign(Object.assign(Object.assign({}, (name && { name })), (rules && { rules })), (priority !== undefined && { priority })),
+            data: {
+                ...(name && { name }),
+                ...(rules && { rules }),
+                ...(priority !== undefined && { priority })
+            },
             include: {
                 parameterSet: {
                     select: { id: true, name: true }
@@ -280,19 +272,19 @@ const updateRfvSegment = (req, res) => __awaiter(void 0, void 0, void 0, functio
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.updateRfvSegment = updateRfvSegment;
 // DELETE an RFV segment
-const deleteRfvSegment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteRfvSegment = async (req, res) => {
     try {
         const { id } = req.params;
-        const segment = yield index_1.prisma.rfvSegment.findUnique({
+        const segment = await index_1.prisma.rfvSegment.findUnique({
             where: { id: parseInt(id) }
         });
         if (!segment) {
             return res.status(404).json({ error: 'Segment not found' });
         }
-        yield index_1.prisma.rfvSegment.delete({
+        await index_1.prisma.rfvSegment.delete({
             where: { id: parseInt(id) }
         });
         res.status(200).json({ message: 'Segment deleted successfully' });
@@ -300,5 +292,5 @@ const deleteRfvSegment = (req, res) => __awaiter(void 0, void 0, void 0, functio
     catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+};
 exports.deleteRfvSegment = deleteRfvSegment;

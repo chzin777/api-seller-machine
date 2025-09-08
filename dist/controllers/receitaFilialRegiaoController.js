@@ -1,18 +1,9 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteReceitaFilialRegiao = exports.updateReceitaFilialRegiao = exports.createReceitaFilialRegiao = exports.getReceitaFilialRegiaoById = exports.getAllReceitaFilialRegiao = void 0;
 const index_1 = require("../index");
 // GET /api/receita-filial-regiao - Buscar todas as receitas de filiais por região
-const getAllReceitaFilialRegiao = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getAllReceitaFilialRegiao = async (req, res) => {
     try {
         const { filialId, regiaoCliente, tipoPeriodo, dataInicio, dataFim } = req.query;
         const whereClause = {};
@@ -41,7 +32,7 @@ const getAllReceitaFilialRegiao = (req, res) => __awaiter(void 0, void 0, void 0
                 lte: new Date(dataFim)
             };
         }
-        const receitasFilialRegiao = yield index_1.prisma.receitaFilialRegiao.findMany({
+        const receitasFilialRegiao = await index_1.prisma.receitaFilialRegiao.findMany({
             where: whereClause,
             include: {
                 filial: {
@@ -64,13 +55,13 @@ const getAllReceitaFilialRegiao = (req, res) => __awaiter(void 0, void 0, void 0
         console.error('Erro ao buscar receitas de filiais por região:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getAllReceitaFilialRegiao = getAllReceitaFilialRegiao;
 // GET /api/receita-filial-regiao/:id - Buscar receita de filial por região por ID
-const getReceitaFilialRegiaoById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getReceitaFilialRegiaoById = async (req, res) => {
     try {
         const { id } = req.params;
-        const receitaFilialRegiao = yield index_1.prisma.receitaFilialRegiao.findUnique({
+        const receitaFilialRegiao = await index_1.prisma.receitaFilialRegiao.findUnique({
             where: { id: parseInt(id) },
             include: {
                 filial: {
@@ -93,13 +84,13 @@ const getReceitaFilialRegiaoById = (req, res) => __awaiter(void 0, void 0, void 
         console.error('Erro ao buscar receita de filial por região:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.getReceitaFilialRegiaoById = getReceitaFilialRegiaoById;
 // POST /api/receita-filial-regiao - Criar nova receita de filial por região
-const createReceitaFilialRegiao = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createReceitaFilialRegiao = async (req, res) => {
     try {
         const { filialId, data, tipoPeriodo, regiaoCliente, estadoCliente, cidadeCliente, receitaRegiao, numeroClientes, numeroNotas, percentualReceita } = req.body;
-        const receitaFilialRegiao = yield index_1.prisma.receitaFilialRegiao.create({
+        const receitaFilialRegiao = await index_1.prisma.receitaFilialRegiao.create({
             data: {
                 filialId,
                 data: new Date(data),
@@ -130,14 +121,14 @@ const createReceitaFilialRegiao = (req, res) => __awaiter(void 0, void 0, void 0
         console.error('Erro ao criar receita de filial por região:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.createReceitaFilialRegiao = createReceitaFilialRegiao;
 // PUT /api/receita-filial-regiao/:id - Atualizar receita de filial por região
-const updateReceitaFilialRegiao = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updateReceitaFilialRegiao = async (req, res) => {
     try {
         const { id } = req.params;
         const { filialId, data, tipoPeriodo, regiaoCliente, estadoCliente, cidadeCliente, receitaRegiao, numeroClientes, numeroNotas, percentualReceita } = req.body;
-        const receitaFilialRegiao = yield index_1.prisma.receitaFilialRegiao.update({
+        const receitaFilialRegiao = await index_1.prisma.receitaFilialRegiao.update({
             where: { id: parseInt(id) },
             data: {
                 filialId,
@@ -169,13 +160,13 @@ const updateReceitaFilialRegiao = (req, res) => __awaiter(void 0, void 0, void 0
         console.error('Erro ao atualizar receita de filial por região:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.updateReceitaFilialRegiao = updateReceitaFilialRegiao;
 // DELETE /api/receita-filial-regiao/:id - Deletar receita de filial por região
-const deleteReceitaFilialRegiao = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteReceitaFilialRegiao = async (req, res) => {
     try {
         const { id } = req.params;
-        yield index_1.prisma.receitaFilialRegiao.delete({
+        await index_1.prisma.receitaFilialRegiao.delete({
             where: { id: parseInt(id) }
         });
         res.status(204).send();
@@ -184,5 +175,5 @@ const deleteReceitaFilialRegiao = (req, res) => __awaiter(void 0, void 0, void 0
         console.error('Erro ao deletar receita de filial por região:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
-});
+};
 exports.deleteReceitaFilialRegiao = deleteReceitaFilialRegiao;
