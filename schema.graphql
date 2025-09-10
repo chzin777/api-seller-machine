@@ -183,6 +183,7 @@ type Pedido {
   id: Int!
   itens: [ItemPedido!]!
   numeroNota: Int!
+  status: String
   totalItens: Int!
   valorTotal: Float!
   vendedor: Vendedor
@@ -198,6 +199,7 @@ input PedidosInput {
   limit: Int! = 50
   numeroNota: Int
   offset: Int! = 0
+  status: String
   valorMaximo: Float
   valorMinimo: Float
   vendedorId: Int

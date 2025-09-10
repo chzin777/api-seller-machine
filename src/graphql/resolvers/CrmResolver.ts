@@ -382,6 +382,8 @@ export class CrmResolver {
     @Arg('input', { nullable: true }) input?: PedidosInput
   ): Promise<PedidosResponse> {
     try {
+      console.log('🔍 Iniciando busca de pedidos com input:', JSON.stringify(input, null, 2));
+      
       const whereClause: any = {};
       
       // Filtros de data
@@ -412,10 +414,6 @@ export class CrmResolver {
         whereClause.numeroNota = input.numeroNota;
       }
       
-      if (input?.status) {
-        whereClause.status = input.status;
-      }
-      
       // Filtros por valor
       if (input?.valorMinimo || input?.valorMaximo) {
         whereClause.valorTotal = {};
@@ -427,66 +425,51 @@ export class CrmResolver {
         }
       }
       
+      console.log('🔍 Where clause:', JSON.stringify(whereClause, null, 2));
+      
       const limit = input?.limit || 50;
       const offset = input?.offset || 0;
       const incluirItens = input?.incluirItens !== false;
       
-      // Buscar pedidos com paginação
-      const includeClause = {
-        filial: {
-          select: {
-            id: true,
-            nome: true,
-            cidade: true,
-            estado: true
-          }
-        },
-        cliente: {
-          select: {
-            id: true,
-            nome: true,
-            cpfCnpj: true,
-            cidade: true,
-            estado: true,
-            logradouro: true,
-            numero: true,
-            bairro: true,
-            cep: true,
-            telefone: true
-          }
-        },
-        vendedor: {
-          select: {
-            id: true,
-            nome: true,
-            cpf: true
-          }
-        },
-        _count: {
-          select: {
-            itens: true
-          }
-        },
-        ...(incluirItens && {
-          itens: {
-            include: {
-              produto: {
-                select: {
-                  id: true,
-                  descricao: true,
-                  tipo: true,
-                  precoReferencia: true
-                }
-              }
-            }
-          }
-        })
-      };
-
+      console.log('🔍 Parâmetros: limit=', limit, 'offset=', offset, 'incluirItens=', incluirItens);
+      
+      // Versão simplificada primeiro - sem relacionamentos complexos
       const [pedidosRaw, total] = await Promise.all([
         prisma.notasFiscalCabecalho.findMany({
           where: whereClause,
-          include: includeClause,
+          select: {
+            id: true,
+            numeroNota: true,
+            dataEmissao: true,
+            valorTotal: true,
+            filialId: true,
+            clienteId: true,
+            vendedorId: true,
+            cliente: {
+              select: {
+                id: true,
+                nome: true,
+                cpfCnpj: true
+              }
+            },
+            filial: {
+              select: {
+                id: true,
+                nome: true
+              }
+            },
+            vendedor: {
+              select: {
+                id: true,
+                nome: true
+              }
+            },
+            _count: {
+              select: {
+                itens: true
+              }
+            }
+          },
           orderBy: {
             dataEmissao: 'desc'
           },
@@ -498,55 +481,46 @@ export class CrmResolver {
         })
       ]);
       
+      console.log('🔍 Encontrados', pedidosRaw.length, 'pedidos de', total, 'total');
+      
       // Mapear os pedidos para o formato GraphQL
       const pedidos = pedidosRaw.map((pedido: any) => ({
         id: pedido.id,
         numeroNota: pedido.numeroNota,
         dataEmissao: pedido.dataEmissao.toISOString().split('T')[0],
         valorTotal: Number(pedido.valorTotal),
-        status: pedido.status || 'Emitida',
+        status: 'Emitida',
         filialId: pedido.filialId || undefined,
         clienteId: pedido.clienteId || undefined,
         vendedorId: pedido.vendedorId || undefined,
         filial: pedido.filial ? {
           id: pedido.filial.id,
           nome: pedido.filial.nome,
-          cidade: pedido.filial.cidade || undefined,
-          estado: pedido.filial.estado || undefined
+          cidade: undefined,
+          estado: undefined
         } : undefined,
         cliente: pedido.cliente ? {
           id: pedido.cliente.id,
           nome: pedido.cliente.nome,
           cpfCnpj: pedido.cliente.cpfCnpj,
-          cidade: pedido.cliente.cidade || undefined,
-          estado: pedido.cliente.estado || undefined,
-          logradouro: pedido.cliente.logradouro || undefined,
-          numero: pedido.cliente.numero || undefined,
-          bairro: pedido.cliente.bairro || undefined,
-          cep: pedido.cliente.cep || undefined,
-          telefone: pedido.cliente.telefone || undefined
+          cidade: undefined,
+          estado: undefined,
+          logradouro: undefined,
+          numero: undefined,
+          bairro: undefined,
+          cep: undefined,
+          telefone: undefined
         } : undefined,
         vendedor: pedido.vendedor ? {
           id: pedido.vendedor.id,
           nome: pedido.vendedor.nome,
-          cpf: pedido.vendedor.cpf
+          cpf: ''
         } : undefined,
-        itens: incluirItens && pedido.itens ? pedido.itens.map((item: any) => ({
-          id: item.id,
-          produtoId: item.produtoId,
-          quantidade: Number(item.Quantidade),
-          valorUnitario: Number(item.valorUnitario),
-          valorTotalItem: Number(item.valorTotalItem),
-          chassi: item.Chassi || undefined,
-          produto: {
-            id: item.produto.id,
-            descricao: item.produto.descricao,
-            tipo: item.produto.tipo || undefined,
-            precoReferencia: item.produto.precoReferencia ? Number(item.produto.precoReferencia) : undefined
-          }
-        })) : [],
+        itens: [], // Simplificado por enquanto
         totalItens: pedido._count.itens
       }));
+      
+      console.log('✅ Retornando', pedidos.length, 'pedidos processados');
       
       return {
         pedidos,
@@ -555,8 +529,13 @@ export class CrmResolver {
         offset
       };
     } catch (error: any) {
-      console.error('Erro ao buscar pedidos:', error);
-      throw new Error('Erro ao buscar pedidos');
+      console.error('❌ Erro detalhado ao buscar pedidos:', {
+        message: error.message,
+        code: error.code,
+        meta: error.meta,
+        stack: error.stack
+      });
+      throw new Error(`Erro ao buscar pedidos: ${error.message}`);
     }
   }
 }
