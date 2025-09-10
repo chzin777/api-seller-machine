@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PrecoRealizadoInput = exports.ClientesInput = exports.CrmAnaliseInput = exports.NovosRecorrentesAnalise = exports.NovosRecorrentesResumo = exports.NovosRecorrentesMes = exports.NovosRecorrentesDetalhes = exports.InatividadeAnalise = exports.InatividadeResumo = exports.InatividadePeriodo = exports.ClientesResponse = exports.Cliente = void 0;
+exports.PedidosInput = exports.PedidosResponse = exports.Pedido = exports.ItemPedido = exports.Produto = exports.Vendedor = exports.Filial = exports.PrecoRealizadoInput = exports.ClientesInput = exports.CrmAnaliseInput = exports.NovosRecorrentesAnalise = exports.NovosRecorrentesResumo = exports.NovosRecorrentesMes = exports.NovosRecorrentesDetalhes = exports.InatividadeAnalise = exports.InatividadeResumo = exports.InatividadePeriodo = exports.ClientesResponse = exports.Cliente = void 0;
 const type_graphql_1 = require("type-graphql");
 let Cliente = class Cliente {
 };
@@ -298,3 +298,234 @@ __decorate([
 exports.PrecoRealizadoInput = PrecoRealizadoInput = __decorate([
     (0, type_graphql_1.InputType)()
 ], PrecoRealizadoInput);
+// Tipos para Pedidos (Notas Fiscais)
+let Filial = class Filial {
+};
+exports.Filial = Filial;
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], Filial.prototype, "id", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String),
+    __metadata("design:type", String)
+], Filial.prototype, "nome", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], Filial.prototype, "cidade", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], Filial.prototype, "estado", void 0);
+exports.Filial = Filial = __decorate([
+    (0, type_graphql_1.ObjectType)()
+], Filial);
+let Vendedor = class Vendedor {
+};
+exports.Vendedor = Vendedor;
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], Vendedor.prototype, "id", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String),
+    __metadata("design:type", String)
+], Vendedor.prototype, "nome", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String),
+    __metadata("design:type", String)
+], Vendedor.prototype, "cpf", void 0);
+exports.Vendedor = Vendedor = __decorate([
+    (0, type_graphql_1.ObjectType)()
+], Vendedor);
+let Produto = class Produto {
+};
+exports.Produto = Produto;
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], Produto.prototype, "id", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String),
+    __metadata("design:type", String)
+], Produto.prototype, "descricao", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], Produto.prototype, "tipo", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Float, { nullable: true }),
+    __metadata("design:type", Number)
+], Produto.prototype, "precoReferencia", void 0);
+exports.Produto = Produto = __decorate([
+    (0, type_graphql_1.ObjectType)()
+], Produto);
+let ItemPedido = class ItemPedido {
+};
+exports.ItemPedido = ItemPedido;
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], ItemPedido.prototype, "id", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], ItemPedido.prototype, "produtoId", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Float),
+    __metadata("design:type", Number)
+], ItemPedido.prototype, "quantidade", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Float),
+    __metadata("design:type", Number)
+], ItemPedido.prototype, "valorUnitario", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Float),
+    __metadata("design:type", Number)
+], ItemPedido.prototype, "valorTotalItem", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], ItemPedido.prototype, "chassi", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Produto),
+    __metadata("design:type", Produto)
+], ItemPedido.prototype, "produto", void 0);
+exports.ItemPedido = ItemPedido = __decorate([
+    (0, type_graphql_1.ObjectType)()
+], ItemPedido);
+let Pedido = class Pedido {
+};
+exports.Pedido = Pedido;
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], Pedido.prototype, "id", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], Pedido.prototype, "numeroNota", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String),
+    __metadata("design:type", String)
+], Pedido.prototype, "dataEmissao", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Float),
+    __metadata("design:type", Number)
+], Pedido.prototype, "valorTotal", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], Pedido.prototype, "status", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int, { nullable: true }),
+    __metadata("design:type", Number)
+], Pedido.prototype, "filialId", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int, { nullable: true }),
+    __metadata("design:type", Number)
+], Pedido.prototype, "clienteId", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int, { nullable: true }),
+    __metadata("design:type", Number)
+], Pedido.prototype, "vendedorId", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Filial, { nullable: true }),
+    __metadata("design:type", Filial)
+], Pedido.prototype, "filial", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Cliente, { nullable: true }),
+    __metadata("design:type", Cliente)
+], Pedido.prototype, "cliente", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Vendedor, { nullable: true }),
+    __metadata("design:type", Vendedor)
+], Pedido.prototype, "vendedor", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => [ItemPedido]),
+    __metadata("design:type", Array)
+], Pedido.prototype, "itens", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], Pedido.prototype, "totalItens", void 0);
+exports.Pedido = Pedido = __decorate([
+    (0, type_graphql_1.ObjectType)()
+], Pedido);
+let PedidosResponse = class PedidosResponse {
+};
+exports.PedidosResponse = PedidosResponse;
+__decorate([
+    (0, type_graphql_1.Field)(() => [Pedido]),
+    __metadata("design:type", Array)
+], PedidosResponse.prototype, "pedidos", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], PedidosResponse.prototype, "total", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], PedidosResponse.prototype, "limit", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int),
+    __metadata("design:type", Number)
+], PedidosResponse.prototype, "offset", void 0);
+exports.PedidosResponse = PedidosResponse = __decorate([
+    (0, type_graphql_1.ObjectType)()
+], PedidosResponse);
+let PedidosInput = class PedidosInput {
+};
+exports.PedidosInput = PedidosInput;
+__decorate([
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], PedidosInput.prototype, "dataInicio", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], PedidosInput.prototype, "dataFim", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int, { nullable: true }),
+    __metadata("design:type", Number)
+], PedidosInput.prototype, "filialId", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int, { nullable: true }),
+    __metadata("design:type", Number)
+], PedidosInput.prototype, "clienteId", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int, { nullable: true }),
+    __metadata("design:type", Number)
+], PedidosInput.prototype, "vendedorId", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int, { nullable: true }),
+    __metadata("design:type", Number)
+], PedidosInput.prototype, "numeroNota", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => String, { nullable: true }),
+    __metadata("design:type", String)
+], PedidosInput.prototype, "status", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Float, { nullable: true }),
+    __metadata("design:type", Number)
+], PedidosInput.prototype, "valorMinimo", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Float, { nullable: true }),
+    __metadata("design:type", Number)
+], PedidosInput.prototype, "valorMaximo", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int, { defaultValue: 50 }),
+    __metadata("design:type", Number)
+], PedidosInput.prototype, "limit", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => type_graphql_1.Int, { defaultValue: 0 }),
+    __metadata("design:type", Number)
+], PedidosInput.prototype, "offset", void 0);
+__decorate([
+    (0, type_graphql_1.Field)(() => Boolean, { defaultValue: true }),
+    __metadata("design:type", Boolean)
+], PedidosInput.prototype, "incluirItens", void 0);
+exports.PedidosInput = PedidosInput = __decorate([
+    (0, type_graphql_1.InputType)()
+], PedidosInput);

@@ -5,7 +5,14 @@ import {
   NovosRecorrentesAnalise,
   Cliente,
   ClientesResponse,
-  ClientesInput
+  ClientesInput,
+  Pedido,
+  PedidosResponse,
+  PedidosInput,
+  ItemPedido,
+  Filial,
+  Vendedor,
+  Produto
 } from '../types/CrmTypes';
 import { PrismaClient } from '@prisma/client';
 
@@ -364,10 +371,192 @@ export class CrmResolver {
         limit,
         offset
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao buscar clientes:', error);
       throw new Error('Erro ao buscar clientes');
     }
   }
 
+  @Query(() => PedidosResponse)
+  async pedidos(
+    @Arg('input', { nullable: true }) input?: PedidosInput
+  ): Promise<PedidosResponse> {
+    try {
+      const whereClause: any = {};
+      
+      // Filtros de data
+      if (input?.dataInicio || input?.dataFim) {
+        whereClause.dataEmissao = {};
+        if (input.dataInicio) {
+          whereClause.dataEmissao.gte = new Date(input.dataInicio);
+        }
+        if (input.dataFim) {
+          whereClause.dataEmissao.lte = new Date(input.dataFim);
+        }
+      }
+      
+      // Filtros por IDs
+      if (input?.filialId) {
+        whereClause.filialId = input.filialId;
+      }
+      
+      if (input?.clienteId) {
+        whereClause.clienteId = input.clienteId;
+      }
+      
+      if (input?.vendedorId) {
+        whereClause.vendedorId = input.vendedorId;
+      }
+      
+      if (input?.numeroNota) {
+        whereClause.numeroNota = input.numeroNota;
+      }
+      
+      if (input?.status) {
+        whereClause.status = input.status;
+      }
+      
+      // Filtros por valor
+      if (input?.valorMinimo || input?.valorMaximo) {
+        whereClause.valorTotal = {};
+        if (input.valorMinimo) {
+          whereClause.valorTotal.gte = input.valorMinimo;
+        }
+        if (input.valorMaximo) {
+          whereClause.valorTotal.lte = input.valorMaximo;
+        }
+      }
+      
+      const limit = input?.limit || 50;
+      const offset = input?.offset || 0;
+      const incluirItens = input?.incluirItens !== false;
+      
+      // Buscar pedidos com paginação
+      const includeClause = {
+        filial: {
+          select: {
+            id: true,
+            nome: true,
+            cidade: true,
+            estado: true
+          }
+        },
+        cliente: {
+          select: {
+            id: true,
+            nome: true,
+            cpfCnpj: true,
+            cidade: true,
+            estado: true,
+            logradouro: true,
+            numero: true,
+            bairro: true,
+            cep: true,
+            telefone: true
+          }
+        },
+        vendedor: {
+          select: {
+            id: true,
+            nome: true,
+            cpf: true
+          }
+        },
+        _count: {
+          select: {
+            itens: true
+          }
+        },
+        ...(incluirItens && {
+          itens: {
+            include: {
+              produto: {
+                select: {
+                  id: true,
+                  descricao: true,
+                  tipo: true,
+                  precoReferencia: true
+                }
+              }
+            }
+          }
+        })
+      };
+
+      const [pedidosRaw, total] = await Promise.all([
+        prisma.notasFiscalCabecalho.findMany({
+          where: whereClause,
+          include: includeClause,
+          orderBy: {
+            dataEmissao: 'desc'
+          },
+          take: limit,
+          skip: offset
+        }),
+        prisma.notasFiscalCabecalho.count({
+          where: whereClause
+        })
+      ]);
+      
+      // Mapear os pedidos para o formato GraphQL
+      const pedidos = pedidosRaw.map((pedido: any) => ({
+        id: pedido.id,
+        numeroNota: pedido.numeroNota,
+        dataEmissao: pedido.dataEmissao.toISOString().split('T')[0],
+        valorTotal: Number(pedido.valorTotal),
+        status: pedido.status || 'Emitida',
+        filialId: pedido.filialId || undefined,
+        clienteId: pedido.clienteId || undefined,
+        vendedorId: pedido.vendedorId || undefined,
+        filial: pedido.filial ? {
+          id: pedido.filial.id,
+          nome: pedido.filial.nome,
+          cidade: pedido.filial.cidade || undefined,
+          estado: pedido.filial.estado || undefined
+        } : undefined,
+        cliente: pedido.cliente ? {
+          id: pedido.cliente.id,
+          nome: pedido.cliente.nome,
+          cpfCnpj: pedido.cliente.cpfCnpj,
+          cidade: pedido.cliente.cidade || undefined,
+          estado: pedido.cliente.estado || undefined,
+          logradouro: pedido.cliente.logradouro || undefined,
+          numero: pedido.cliente.numero || undefined,
+          bairro: pedido.cliente.bairro || undefined,
+          cep: pedido.cliente.cep || undefined,
+          telefone: pedido.cliente.telefone || undefined
+        } : undefined,
+        vendedor: pedido.vendedor ? {
+          id: pedido.vendedor.id,
+          nome: pedido.vendedor.nome,
+          cpf: pedido.vendedor.cpf
+        } : undefined,
+        itens: incluirItens && pedido.itens ? pedido.itens.map((item: any) => ({
+          id: item.id,
+          produtoId: item.produtoId,
+          quantidade: Number(item.Quantidade),
+          valorUnitario: Number(item.valorUnitario),
+          valorTotalItem: Number(item.valorTotalItem),
+          chassi: item.Chassi || undefined,
+          produto: {
+            id: item.produto.id,
+            descricao: item.produto.descricao,
+            tipo: item.produto.tipo || undefined,
+            precoReferencia: item.produto.precoReferencia ? Number(item.produto.precoReferencia) : undefined
+          }
+        })) : [],
+        totalItens: pedido._count.itens
+      }));
+      
+      return {
+        pedidos,
+        total,
+        limit,
+        offset
+      };
+    } catch (error: any) {
+      console.error('Erro ao buscar pedidos:', error);
+      throw new Error('Erro ao buscar pedidos');
+    }
+  }
 }

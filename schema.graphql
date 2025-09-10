@@ -78,6 +78,13 @@ type CrossSellItem {
   valorTotal: Float!
 }
 
+type Filial {
+  cidade: String
+  estado: String
+  id: Int!
+  nome: String!
+}
+
 type InatividadeAnalise {
   filialId: Int!
   periodo: String!
@@ -100,6 +107,16 @@ type InatividadeResumo {
   percentualInativos: Float!
   totalClientes: Int!
   valorMedioCompra: Float!
+}
+
+type ItemPedido {
+  chassi: String
+  id: Int!
+  produto: Produto!
+  produtoId: Int!
+  quantidade: Float!
+  valorTotalItem: Float!
+  valorUnitario: Float!
 }
 
 input MixPortfolioInput {
@@ -157,6 +174,42 @@ type NovosRecorrentesResumo {
   recorrentes: NovosRecorrentesDetalhes!
 }
 
+type Pedido {
+  cliente: Cliente
+  clienteId: Int
+  dataEmissao: String!
+  filial: Filial
+  filialId: Int
+  id: Int!
+  itens: [ItemPedido!]!
+  numeroNota: Int!
+  totalItens: Int!
+  valorTotal: Float!
+  vendedor: Vendedor
+  vendedorId: Int
+}
+
+input PedidosInput {
+  clienteId: Int
+  dataFim: String
+  dataInicio: String
+  filialId: Int
+  incluirItens: Boolean! = true
+  limit: Int! = 50
+  numeroNota: Int
+  offset: Int! = 0
+  valorMaximo: Float
+  valorMinimo: Float
+  vendedorId: Int
+}
+
+type PedidosResponse {
+  limit: Int!
+  offset: Int!
+  pedidos: [Pedido!]!
+  total: Int!
+}
+
 type PrecoRealizadoAnalise {
   analise: [PrecoRealizadoTipo!]!
   filialId: Int!
@@ -181,6 +234,13 @@ type PrecoRealizadoTipo {
   precoMedioReferencia: Float!
   tipo: String!
   totalItens: Int!
+}
+
+type Produto {
+  descricao: String!
+  id: Int!
+  precoReferencia: Float
+  tipo: String
 }
 
 type ProdutoSemGiro {
@@ -219,6 +279,13 @@ type Query {
   crmNovosRecorrentes(input: CrmAnaliseInput!): NovosRecorrentesAnalise!
   crossSell(input: MixPortfolioInput!): CrossSellAnalise!
   mixPorTipo(filialId: Float!, periodo: String!): MixTipoAnalise!
+  pedidos(input: PedidosInput): PedidosResponse!
   precoRealizadoVsReferencia(input: PrecoRealizadoInput!): PrecoRealizadoAnalise!
   produtosSemGiro(input: ProdutosSemGiroInput!): ProdutosSemGiroAnalise!
+}
+
+type Vendedor {
+  cpf: String!
+  id: Int!
+  nome: String!
 }
