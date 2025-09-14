@@ -57,6 +57,8 @@ import proxyRoutes from './routes/proxyRoutes';
 import crmRoutes from './routes/crmRoutes';
 // Import Mix Portfolio routes
 import mixPortfolioRoutes from './routes/mixPortfolioRoutes';
+// Import AI routes
+import aiRoutes from './routes/aiRoutes';
 
 
 export const prisma = new PrismaClient();
@@ -146,6 +148,9 @@ app.use('/api/crm', crmRoutes);
 
 // Mix Portfolio routes
 app.use('/api/mix-portfolio', mixPortfolioRoutes);
+
+// AI routes
+app.use('/api/ai', aiRoutes);
 
 // Proxy routes
 app.use('/api/proxy', proxyRoutes);

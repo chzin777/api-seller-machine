@@ -88,6 +88,8 @@ const proxyRoutes_1 = __importDefault(require("./routes/proxyRoutes"));
 const crmRoutes_1 = __importDefault(require("./routes/crmRoutes"));
 // Import Mix Portfolio routes
 const mixPortfolioRoutes_1 = __importDefault(require("./routes/mixPortfolioRoutes"));
+// Import AI routes
+const aiRoutes_1 = __importDefault(require("./routes/aiRoutes"));
 exports.prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
 // Validate environment variables
@@ -159,6 +161,8 @@ app.use('/api/rfv-tipo-negocio', rfvTipoNegocioRoutes_1.default);
 app.use('/api/crm', crmRoutes_1.default);
 // Mix Portfolio routes
 app.use('/api/mix-portfolio', mixPortfolioRoutes_1.default);
+// AI routes
+app.use('/api/ai', aiRoutes_1.default);
 // Proxy routes
 app.use('/api/proxy', proxyRoutes_1.default);
 async function main() {
