@@ -106,6 +106,11 @@ export const createConfiguracaoInatividade = async (req: Request, res: Response)
       ativo
     } = req.body;
 
+    const diasNumber = Number(diasSemCompra);
+    if (!Number.isInteger(diasNumber) || diasNumber < 1) {
+      return res.status(400).json({ error: 'diasSemCompra deve ser um inteiro positivo (> 0)' });
+    }
+
     // Verificar se já existe configuração para esta empresa
     const configuracaoExistente = await prisma.configuracaoInatividade.findUnique({
       where: {
@@ -156,6 +161,13 @@ export const updateConfiguracaoInatividade = async (req: Request, res: Response)
       tiposClienteExcluidos,
       ativo
     } = req.body;
+
+    if (diasSemCompra !== undefined) {
+      const diasNumber = Number(diasSemCompra);
+      if (!Number.isInteger(diasNumber) || diasNumber < 1) {
+        return res.status(400).json({ error: 'diasSemCompra deve ser um inteiro positivo (> 0)' });
+      }
+    }
 
     const configuracaoAtualizada = await prisma.configuracaoInatividade.update({
       where: {
@@ -269,9 +281,14 @@ export const upsertConfiguracaoInatividadeController = async (req: Request, res:
       return res.status(400).json({ error: 'empresaId e diasSemCompra são obrigatórios' });
     }
 
+    const diasNumber = Number(diasSemCompra);
+    if (!Number.isInteger(diasNumber) || diasNumber < 1) {
+      return res.status(400).json({ error: 'diasSemCompra deve ser um inteiro positivo (> 0)' });
+    }
+
     const updated = await upsertConfiguracaoInatividade({
       empresaId: Number(empresaId),
-      diasSemCompra: Number(diasSemCompra),
+  diasSemCompra: diasNumber,
       valorMinimoCompra: valorMinimoCompra !== undefined ? Number(valorMinimoCompra) : null,
       considerarTipoCliente: considerarTipoCliente ?? false,
       tiposClienteExcluidos: tiposClienteExcluidos ?? null,
