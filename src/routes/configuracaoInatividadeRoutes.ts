@@ -6,7 +6,8 @@ import {
   createConfiguracaoInatividade,
   updateConfiguracaoInatividade,
   deleteConfiguracaoInatividade,
-  toggleConfiguracaoInatividade
+  toggleConfiguracaoInatividade,
+  upsertConfiguracaoInatividadeController
 } from '../controllers/configuracaoInatividadeController';
 // import { authenticateToken } from '../middlewares/auth';
 
@@ -17,8 +18,9 @@ const router = Router();
 
 // Rotas para configuração de inatividade
 router.get('/', getConfiguracaoInatividade);
-router.get('/:id', getConfiguracaoInatividadeById);
+router.post('/upsert', upsertConfiguracaoInatividadeController); // Upsert must come before param routes
 router.get('/empresa/:empresaId', getConfiguracaoInatividadeByEmpresa);
+router.get('/:id', getConfiguracaoInatividadeById);
 router.post('/', createConfiguracaoInatividade);
 router.put('/:id', updateConfiguracaoInatividade);
 router.patch('/:id/toggle', toggleConfiguracaoInatividade);

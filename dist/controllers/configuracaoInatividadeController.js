@@ -1,8 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.toggleConfiguracaoInatividade = exports.deleteConfiguracaoInatividade = exports.updateConfiguracaoInatividade = exports.createConfiguracaoInatividade = exports.getConfiguracaoInatividadeByEmpresa = exports.getConfiguracaoInatividadeById = exports.getConfiguracaoInatividade = void 0;
+exports.upsertConfiguracaoInatividadeController = exports.toggleConfiguracaoInatividade = exports.deleteConfiguracaoInatividade = exports.updateConfiguracaoInatividade = exports.createConfiguracaoInatividade = exports.getConfiguracaoInatividadeByEmpresa = exports.getConfiguracaoInatividadeById = exports.getConfiguracaoInatividade = void 0;
 const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
+const configuracaoInatividadeService_1 = require("../services/configuracaoInatividadeService");
+// Prefer reusing singleton exported in index
+let prisma;
+try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    prisma = require('../index').prisma;
+}
+catch (_a) {
+    prisma = new client_1.PrismaClient();
+}
 // Buscar todas as configurações de inatividade
 const getConfiguracaoInatividade = async (req, res) => {
     try {
@@ -67,23 +76,20 @@ exports.getConfiguracaoInatividadeById = getConfiguracaoInatividadeById;
 const getConfiguracaoInatividadeByEmpresa = async (req, res) => {
     try {
         const { empresaId } = req.params;
+        const id = parseInt(empresaId);
         const configuracao = await prisma.configuracaoInatividade.findUnique({
-            where: {
-                empresaId: parseInt(empresaId)
-            },
+            where: { empresaId: id },
             include: {
-                empresa: {
-                    select: {
-                        id: true,
-                        razaoSocial: true,
-                        nomeFantasia: true
-                    }
-                }
+                empresa: { select: { id: true, razaoSocial: true, nomeFantasia: true } }
             }
         });
         if (!configuracao) {
             return res.status(404).json({ error: 'Configuração de inatividade não encontrada para esta empresa' });
         }
+        // Avoid caching stale responses (CDN / browser)
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
         res.json(configuracao);
     }
     catch (error) {
@@ -229,3 +235,31 @@ const toggleConfiguracaoInatividade = async (req, res) => {
     }
 };
 exports.toggleConfiguracaoInatividade = toggleConfiguracaoInatividade;
+// Upsert (create or update by empresaId) configuration of inactivity
+const upsertConfiguracaoInatividadeController = async (req, res) => {
+    try {
+        const { empresaId, diasSemCompra, valorMinimoCompra, considerarTipoCliente, tiposClienteExcluidos, ativo } = req.body;
+        if (empresaId === undefined || diasSemCompra === undefined) {
+            return res.status(400).json({ error: 'empresaId e diasSemCompra são obrigatórios' });
+        }
+        const updated = await (0, configuracaoInatividadeService_1.upsertConfiguracaoInatividade)({
+            empresaId: Number(empresaId),
+            diasSemCompra: Number(diasSemCompra),
+            valorMinimoCompra: valorMinimoCompra !== undefined ? Number(valorMinimoCompra) : null,
+            considerarTipoCliente: considerarTipoCliente !== null && considerarTipoCliente !== void 0 ? considerarTipoCliente : false,
+            tiposClienteExcluidos: tiposClienteExcluidos !== null && tiposClienteExcluidos !== void 0 ? tiposClienteExcluidos : null,
+            ativo: ativo !== null && ativo !== void 0 ? ativo : true
+        });
+        // Recupera com include para manter consistência de resposta com outros endpoints
+        const configuracaoComEmpresa = await prisma.configuracaoInatividade.findUnique({
+            where: { empresaId: updated.empresaId },
+            include: { empresa: { select: { id: true, razaoSocial: true, nomeFantasia: true } } }
+        });
+        res.status(200).json(configuracaoComEmpresa);
+    }
+    catch (error) {
+        console.error('Erro no upsert de configuração de inatividade:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+};
+exports.upsertConfiguracaoInatividadeController = upsertConfiguracaoInatividadeController;

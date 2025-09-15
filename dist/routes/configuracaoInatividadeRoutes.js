@@ -8,8 +8,9 @@ const router = (0, express_1.Router)();
 // router.use(authenticateToken);
 // Rotas para configuração de inatividade
 router.get('/', configuracaoInatividadeController_1.getConfiguracaoInatividade);
-router.get('/:id', configuracaoInatividadeController_1.getConfiguracaoInatividadeById);
+router.post('/upsert', configuracaoInatividadeController_1.upsertConfiguracaoInatividadeController); // Upsert must come before param routes
 router.get('/empresa/:empresaId', configuracaoInatividadeController_1.getConfiguracaoInatividadeByEmpresa);
+router.get('/:id', configuracaoInatividadeController_1.getConfiguracaoInatividadeById);
 router.post('/', configuracaoInatividadeController_1.createConfiguracaoInatividade);
 router.put('/:id', configuracaoInatividadeController_1.updateConfiguracaoInatividade);
 router.patch('/:id/toggle', configuracaoInatividadeController_1.toggleConfiguracaoInatividade);

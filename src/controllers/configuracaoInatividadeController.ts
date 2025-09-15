@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { upsertConfiguracaoInatividade, getConfiguracaoInatividadePorEmpresa } from '../services/configuracaoInatividadeService';
 
 const prisma = new PrismaClient();
 
@@ -71,26 +72,21 @@ export const getConfiguracaoInatividadeById = async (req: Request, res: Response
 export const getConfiguracaoInatividadeByEmpresa = async (req: Request, res: Response) => {
   try {
     const { empresaId } = req.params;
-
+    const id = parseInt(empresaId);
     const configuracao = await prisma.configuracaoInatividade.findUnique({
-      where: {
-        empresaId: parseInt(empresaId)
-      },
+      where: { empresaId: id },
       include: {
-        empresa: {
-          select: {
-            id: true,
-            razaoSocial: true,
-            nomeFantasia: true
-          }
-        }
+        empresa: { select: { id: true, razaoSocial: true, nomeFantasia: true } }
       }
     });
 
     if (!configuracao) {
       return res.status(404).json({ error: 'Configuração de inatividade não encontrada para esta empresa' });
     }
-
+    // Avoid caching stale responses (CDN / browser)
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.json(configuracao);
   } catch (error: any) {
     console.error('Erro ao buscar configuração de inatividade por empresa:', error);
@@ -253,6 +249,44 @@ export const toggleConfiguracaoInatividade = async (req: Request, res: Response)
     res.json(configuracaoAtualizada);
   } catch (error: any) {
     console.error('Erro ao alternar status da configuração de inatividade:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+};
+
+// Upsert (create or update by empresaId) configuration of inactivity
+export const upsertConfiguracaoInatividadeController = async (req: Request, res: Response) => {
+  try {
+    const {
+      empresaId,
+      diasSemCompra,
+      valorMinimoCompra,
+      considerarTipoCliente,
+      tiposClienteExcluidos,
+      ativo
+    } = req.body;
+
+    if (empresaId === undefined || diasSemCompra === undefined) {
+      return res.status(400).json({ error: 'empresaId e diasSemCompra são obrigatórios' });
+    }
+
+    const updated = await upsertConfiguracaoInatividade({
+      empresaId: Number(empresaId),
+      diasSemCompra: Number(diasSemCompra),
+      valorMinimoCompra: valorMinimoCompra !== undefined ? Number(valorMinimoCompra) : null,
+      considerarTipoCliente: considerarTipoCliente ?? false,
+      tiposClienteExcluidos: tiposClienteExcluidos ?? null,
+      ativo: ativo ?? true
+    });
+
+    // Recupera com include para manter consistência de resposta com outros endpoints
+    const configuracaoComEmpresa = await prisma.configuracaoInatividade.findUnique({
+      where: { empresaId: updated.empresaId },
+      include: { empresa: { select: { id: true, razaoSocial: true, nomeFantasia: true } } }
+    });
+
+    res.status(200).json(configuracaoComEmpresa);
+  } catch (error: any) {
+    console.error('Erro no upsert de configuração de inatividade:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 };
