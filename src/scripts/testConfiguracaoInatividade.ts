@@ -16,35 +16,36 @@ interface ConfiguracaoInatividadeDTO {
 async function run() {
   const baseURL = process.env.TEST_BASE_URL || 'http://localhost:3001';
   const empresaId = Number(process.env.TEST_EMPRESA_ID || 1);
-  const dias = Number(process.env.TEST_DIAS || 5000);
+  const valores = (process.env.TEST_DIAS_LIST || '80,1000,5000').split(',').map(v => Number(v.trim())).filter(n => !isNaN(n));
 
-  console.log(`➡️  Teste: Upsert configuracao inatividade (empresaId=${empresaId}, diasSemCompra=${dias})`);
+  for (const dias of valores) {
+    console.log(`\n➡️  Teste: Upsert configuracao inatividade (empresaId=${empresaId}, diasSemCompra=${dias})`);
+    try {
+      const upsertResp = await axios.post<ConfiguracaoInatividadeDTO>(`${baseURL}/api/configuracao-inatividade/upsert`, {
+        empresaId,
+        diasSemCompra: dias,
+        valorMinimoCompra: 123.45,
+        considerarTipoCliente: true,
+        tiposClienteExcluidos: '["interno"]'
+      });
+      console.log('✅ Upsert OK:', upsertResp.data.diasSemCompra);
+      const getResp = await axios.get<ConfiguracaoInatividadeDTO>(`${baseURL}/api/configuracao-inatividade/empresa/${empresaId}`);
+      console.log('🔁 GET diasSemCompra retornado:', getResp.data.diasSemCompra);
 
-  try {
-    const upsertResp = await axios.post<ConfiguracaoInatividadeDTO>(`${baseURL}/api/configuracao-inatividade/upsert`, {
-      empresaId,
-      diasSemCompra: dias,
-      valorMinimoCompra: 123.45,
-      considerarTipoCliente: true,
-      tiposClienteExcluidos: '["interno"]'
-    });
-    console.log('✅ Upsert OK:', upsertResp.data.diasSemCompra);
-    const getResp = await axios.get<ConfiguracaoInatividadeDTO>(`${baseURL}/api/configuracao-inatividade/empresa/${empresaId}`);
-    console.log('🔁 GET diasSemCompra retornado:', getResp.data.diasSemCompra);
-
-    if (getResp.data.diasSemCompra !== dias) {
-      console.error('❌ Valor divergente! Esperado', dias, 'recebido', getResp.data.diasSemCompra);
+      if (getResp.data.diasSemCompra !== dias) {
+        console.error('❌ Valor divergente! Esperado', dias, 'recebido', getResp.data.diasSemCompra);
+        process.exitCode = 1;
+      } else {
+        console.log('🎯 Teste passou: valor persistido corretamente.');
+      }
+    } catch (err: any) {
+      if (err.response) {
+        console.error('❌ Erro HTTP', err.response.status, err.response.data);
+      } else {
+        console.error('❌ Erro inesperado', err.message);
+      }
       process.exitCode = 1;
-    } else {
-      console.log('🎯 Teste passou: valor persistido corretamente.');
     }
-  } catch (err: any) {
-    if (err.response) {
-      console.error('❌ Erro HTTP', err.response.status, err.response.data);
-    } else {
-      console.error('❌ Erro inesperado', err.message);
-    }
-    process.exitCode = 1;
   }
 }
 
