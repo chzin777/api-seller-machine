@@ -361,9 +361,17 @@ export const getVendedoresWithStats = async (req: Request, res: Response) => {
  * GET /api/vendedores/resumo
  */
 export const getVendedoresResumo = async (req: Request, res: Response) => {
+    // Log entrada da requisição
+    console.log('[getVendedoresResumo] INICIO', {
+        url: req.originalUrl,
+        method: req.method,
+        headers: req.headers,
+        envGraphql: process.env.NEXT_PUBLIC_GRAPHQL_URL,
+    });
     try {
         // Total de vendedores
         const totalVendedores = await prisma.vendedor.count();
+        console.log('[getVendedoresResumo] totalVendedores', totalVendedores);
 
         // Vendedores por filial
         const vendedoresPorFilial = await prisma.vendedor.groupBy({
@@ -372,20 +380,24 @@ export const getVendedoresResumo = async (req: Request, res: Response) => {
                 id: true,
             },
         });
+        console.log('[getVendedoresResumo] vendedoresPorFilial', vendedoresPorFilial);
 
         // Buscar nomes das filiais
         const filiaisIds = vendedoresPorFilial
             .map(item => item.filialId)
             .filter((id): id is number => id !== null);
-        
+        console.log('[getVendedoresResumo] filiaisIds', filiaisIds);
+
         const filiais = await prisma.filial.findMany({
             where: { id: { in: filiaisIds } },
             select: { id: true, nome: true }
         });
+        console.log('[getVendedoresResumo] filiais', filiais);
 
         const filialMap = new Map(filiais.map(f => [f.id, f.nome]));
 
         const vendedoresSemFilial = vendedoresPorFilial.find(item => item.filialId === null)?._count.id || 0;
+        console.log('[getVendedoresResumo] vendedoresSemFilial', vendedoresSemFilial);
 
         const porFilial = vendedoresPorFilial
             .filter(item => item.filialId !== null)
@@ -394,15 +406,32 @@ export const getVendedoresResumo = async (req: Request, res: Response) => {
                 nomeFilial: filialMap.get(item.filialId!) || 'Desconhecida',
                 quantidade: item._count.id,
             }));
+        console.log('[getVendedoresResumo] porFilial', porFilial);
 
         const resumo = {
             totalVendedores,
             vendedoresSemFilial,
             porFilial,
         };
+        console.log('[getVendedoresResumo] resumo FINAL', resumo);
 
         res.status(200).json(resumo);
     } catch (error: any) {
-        res.status(500).json({ error: error.message });
+        // Log erro completo
+        console.error('[getVendedoresResumo] ERRO', {
+            message: error.message,
+            stack: error.stack,
+            code: error.code,
+            error,
+        });
+        res.status(500).json({
+            error: {
+                message: error.message,
+                stack: error.stack,
+                code: error.code,
+                error,
+            },
+            envGraphql: process.env.NEXT_PUBLIC_GRAPHQL_URL,
+        });
     }
 };
